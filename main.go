@@ -37,6 +37,16 @@ func main() {
 		"https://t.me/s/shadowsocksshop",
 		"https://t.me/s/v2rayan",
 		"https://t.me/ShadowSocks_s",
+		"https://t.me/s/VmessProtocol",
+		"https://t.me/s/napsternetv_config",
+		"https://t.me/s/Easy_Free_VPN",
+		"https://t.me/s/V2Ray_FreedomIran",
+		"https://t.me/s/V2RAY_VMESS_free",
+		"https://t.me/s/v2ray_for_free",
+		"https://t.me/s/V2rayN_Free",
+		"https://t.me/s/free4allVPN",
+		"https://t.me/s/vpn_ocean",
+		"https://t.me/s/configV2rayForFree",
 	}
 
 	configs := map[string]string{
