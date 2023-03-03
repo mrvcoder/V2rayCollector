@@ -35,6 +35,16 @@ row|link
 17|https://t.me/shadowsocksshop|
 19|https://t.me/v2rayan|
 20|https://t.me/ShadowSocks_s|
+21|https://t.me/VmessProtocol|
+22|https://t.me/napsternetv_config|
+23|https://t.me/Easy_Free_VPN|
+24|https://t.me/V2Ray_FreedomIran|
+25|https://t.me/V2RAY_VMESS_free|
+26|https://t.me/v2ray_for_free|
+27|https://t.me/V2rayN_Free|
+28|https://t.me/free4allVPN|
+29|https://t.me/vpn_ocean|
+30|https://t.me/configV2rayForFree|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
