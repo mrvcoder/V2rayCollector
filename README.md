@@ -1,6 +1,6 @@
 # Introduction
 
-This project crawls v2ray configs from Telegram channels. And the list is updated every 5 hours. 😋
+This project crawls v2ray configs from Telegram channels. And the list will update every 5 hours. 😋
 
 # How to use this ?! 🤔
 
