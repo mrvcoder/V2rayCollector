@@ -18,5 +18,4 @@ jobs:
 
     - name: Build and run Golang file
       run: |
-        go build -o myapp
-        ./myapp
+        go run ./main.go
