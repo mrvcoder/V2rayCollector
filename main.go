@@ -23,6 +23,13 @@ func main() {
 		"https://t.me/s/custom_14",
 		"https://t.me/s/v2rayNG_VPNN",
 		"https://t.me/s/v2ray_outlineir",
+		"https://t.me/s/v2_vmess",
+		"https://t.me/s/FreeVlessVpn",
+		"https://t.me/s/freeland8",
+		"https://t.me/s/vmess_vless_v2rayng",
+		"https://t.me/s/PrivateVPNs",
+		"https://t.me/s/vmessiran",
+		"https://t.me/s/Outline_Vpn",
 	}
 
 	configs := map[string]string{
