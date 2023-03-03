@@ -21,7 +21,7 @@ row|link
 3|https://t.me/V2rayNGvpni|
 4|https://t.me/custom_14|
 5|https://t.me/v2rayNG_VPNN|
-6|https://t.me/v2rayNG_VPNN|
+6|https://t.me/V2rayNG3|
 7|https://t.me/v2ray_outlineir|
 8|https://t.me/v2_vmess|
 9|https://t.me/FreeVlessVpn|
@@ -29,6 +29,12 @@ row|link
 11|https://t.me/PrivateVPNs|
 12|https://t.me/vmessiran|
 13|https://t.me/Outline_Vpn|
+14|https://t.me/vmessq|
+15|https://t.me/WeePeeN|
+16|https://t.me/ShadowsocksM|
+17|https://t.me/shadowsocksshop|
+19|https://t.me/v2rayan|
+20|https://t.me/ShadowSocks_s|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
