@@ -4,9 +4,6 @@ trojan://Sp3eDVp@185.212.200.74:443?security=tls&headerType=none&type=tcp#%40v2r
 trojan://Sp3eDVp@185.212.200.75:443?security=tls&headerType=none&type=tcp#%40v2rayng_org
 trojan://e05c749b-7c6b-41b8-9c71-9dcf685edf4a@152.67.162.166:443?security=tls&headerType=none&type=tcp#%40v2rayng_fa
 trojan://cd27884b-c5af-34ec-b75f-8248077818fe@192.9.148.1:5215?security=tls&headerType=none&type=tcp&sni=$b.mg.us.cat77.cloud#%40v2rayng_fa
-trojan://Sp3eDVp@185.212.200.74:443?security=tls&headerType=none&type=tcp#%40v2rayng_org
-trojan://xxoo@138.124.183.216:443?security=tls&headerType=none&type=tcp#%40v2rayng_org
-trojan://cf4295378e209e70d12c5bdd017144dfd1c772d3@108.137.18.26:8443?security=tls&headerType=none&type=tcp#%40v2rayng_org
 trojan://ysStXdjqZJ@linux.seatech.ir:8080?security=tls&headerType=none&type=tcp#%40v2rayng_org
 trojan://d2c435dd-f5d6-4b27-b2af-daddcf85b56c@download2hkt.windowsupdate.lol:443?security=tls&headerType=none&type=tcp&sni=dc3-download.windowsupdate1.com#%40v2rayng_org
 trojan://6b0333aab4d046ebacc35e04f426cb82@hk01.shenzhouplus.cf:10005?security=tls&headerType=none&type=tcp#%40v2rayng_org
@@ -23,6 +20,8 @@ trojan://6b0333aab4d046ebacc35e04f426cb82@sg01.shenzhouplus.cf:10005?security=tl
 trojan://Sp3eDVp@185.212.200.74:443?security=tls&headerType=none&type=tcp#%40v2rayng_org
 trojan://shefelnak@185.16.206.211:443?security=tls&headerType=none&type=tcp#%40v2rayng_org
 trojan://6b0333aab4d046ebacc35e04f426cb82@hk01.shenzhouplus.cf:10003?security=tls&headerType=none&type=tcp#%40v2rayng_org
+trojan://Lutsyy96g9@new.viporg12345.info:17742?security=tls&headerType=none&type=tcp#%40v2rayng_org
+trojan://shefelnak@185.16.206.211:443?security=tls&headerType=none&type=tcp#%40v2rayng_org
 trojan://shenmegui@37.123.196.250:28895?security=tls&headerType=none&type=tcp#%40v2rayng_orgss://YWVzLTI1Ni1nY206S2l4THZLendqZWtHMDBybQ==@51.68.206.229:8080#%40v2rayng_orgvmess://eyJhZGQiOiJ1cy0yLnNoYWhhYmIxZGV2ei53ZWJzaXRlIiwiYWlkIjoiMCIsImFscG4iOiIiLCJob3N0IjoidXMtMi5zaGFoYWJiMWRldnoud2Vic2l0ZSIsImlkIjoiNWQ2NmU0NzUtNjgxOS00ZTI1LWQ1NjAtYTJiMjgwZjY1MWVkIiwibmV0Ijoid3MiLCJwYXRoIjoiLyIsInBvcnQiOiI0NzI2MSIsInBzIjoiQHYycmF5bmdfb3JnIiwic2N5IjoiYXV0byIsInNuaSI6InVzLTIuc2hhaGFiYjFkZXZ6LndlYnNpdGUiLCJ0bHMiOiJ0bHMiLCJ0eXBlIjoiIiwidiI6IjIifQ==ss://YWVzLTI1Ni1nY206WEtGS2wyclVMaklwNzQ=@51.77.53.200:8008#%40v2rayng_org
 trojan://xxoo@146.19.230.241:443?security=tls&headerType=none&type=tcp#%40v2rayng_org
 trojan://cf4295378e209e70d12c5bdd017144dfd1c772d3@108.137.18.26:8443?security=tls&headerType=none&type=tcp#%40v2rayng_org
