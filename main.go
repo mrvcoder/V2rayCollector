@@ -30,6 +30,13 @@ func main() {
 		"https://t.me/s/PrivateVPNs",
 		"https://t.me/s/vmessiran",
 		"https://t.me/s/Outline_Vpn",
+		"https://t.me/s/vmessq",
+		"https://t.me/s/WeePeeN",
+		"https://t.me/s/V2rayNG3",
+		"https://t.me/s/ShadowsocksM",
+		"https://t.me/s/shadowsocksshop",
+		"https://t.me/s/v2rayan",
+		"https://t.me/ShadowSocks_s",
 	}
 
 	configs := map[string]string{
