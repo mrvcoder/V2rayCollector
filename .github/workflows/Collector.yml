@@ -21,3 +21,19 @@ jobs:
     - name: Build and run Golang file
       run: |
         go run ./main.go
+    
+    - name: Commit Changes
+      run: |
+        git config --local user.email "actions@github.com"
+        git config --local user.name "GitHub Actions"
+        git pull origin master
+        git add ./vmess_iran.txt
+        git add ./trojan_iran.txt
+        git add ./vmless_iran.txt
+        git add ./ss_iran.txt
+        git checkout master
+        git commit -m "✔️ $(date '+%Y-%m-%d %H:%M:%S') Collected"
+    - name: Push Changes
+      uses: ad-m/github-push-action@master
+      with:
+        branch: master
