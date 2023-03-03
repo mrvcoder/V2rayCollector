@@ -51,10 +51,10 @@ func main() {
 		}
 
 		messages := doc.Find(".tgme_widget_message_wrap").Length()
-		if messages < 150 {
+		if messages < 300 {
 			link, _ := doc.Find(".tme_messages_more").Attr("href")
 			number := strings.Split(link, "=")[1]
-			doc = GetMessages(150, doc, number, channels[i])
+			doc = GetMessages(300, doc, number, channels[i])
 		}
 		doc.Find("code").Each(func(j int, s *goquery.Selection) {
 			// For each item found, get the band and title
