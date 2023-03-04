@@ -51,7 +51,6 @@ trojan://Go5e2nJM8U@188.42.88.252:2087?path=@v2rayNG_VPNN&security=tls&host=ee.v
 trojan://Go5e2nJM8U@45.95.241.101:2087?path=@v2rayNG_VPNN&security=tls&host=ee.v2jey.fun&type=ws&sni=aa.v2jey.fun#%40v2rayNG_VPNN
 trojan://Go5e2nJM8U@45.85.119.179:2087?path=@v2rayNG_VPNN&security=tls&host=ee.v2jey.fun&type=ws&sni=aa.v2jey.fun#%40v2rayNG_VPNN
 trojan://SY3xEocCGg@45.85.119.29:8443?host=1.v2jey.fun&mode=gun&security=tls&type=grpc&serviceName=&sni=sni.v2jey.fun#%40v2rayNG_VPNN
-trojan://c6d8be6f-cf07-4c2e-b1be-da5fd49868b0@s-sg01.aikun.online:10000?security=tls&headerType=none&type=tcp#%40v2_vmess
 trojan://q37K55b8FE@linux.seatech.ir:24589?security=tls&headerType=none&type=tcp#%40V2_Vmess
 trojan://395ab0f4-5fed-40e1-a96f-1a9568a2ccfc@id.artunnel57.host:443?security=tls&type=tcp&sni=id.artunnel57.host#Trojan_TCP_tls
 trojan://1eb9fcd3-4875-4eae-a66e-bb054b84384d@id.artunnel57.host:443?security=tls&type=ws&headerType=none&path=%252Ftrojan-tls&sni=id.artunnel57.host&host=id.artunnel57.host#Trojan_WS_tls
