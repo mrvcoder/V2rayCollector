@@ -54,8 +54,6 @@ vless://bb3cc516-af65-4651-a508-422d894aff7b@v3.newv2rayfree1.shop:57657?mode=gu
 vless://f230236c-ff19-4300-a5be-26fb5081f086@104.18.21.81:80?path=%2F&security=none&encryption=none&host=tapsi.poolf.top&type=ws#%40NapsternetV_Config+%DA%A9%D8%A7%D9%86%D8%A7%D9%84+%D8%AA%D9%84%DA%AF%D8%B1%D8%A7%D9%85+%D9%85%D8%A7
 vless://05003b7a-8f03-41d5-b696-0119e8376a20@t6.teslacdn2.live:443?path=%2Favevws&security=tls&encryption=none&host=t6.teslacdn2.live&type=ws&sni=t6.teslacdn2.live#%40Easy_Free_VPN+%2F%5C+%40v2rayng14
 vless://user@s26.mynameismahsa.info:443?type=ws&security=tls&path=%2F&sni=s26.mynameismahsa.info#FI-S26-USA
-vless://01791609-2005-4041-945e-3f2bc49e06cb@104.17.14.48:443?path=%2Fvless&security=tls&encryption=none&host=sg1-v.sshmax.xyz&type=ws&sni=sg1-v.sshmax.xyz#@V2rayN_Free
-vless://8dbe238c-455e-4eb2-9362-00fa04435845@104.17.14.48:443?path=%2Fvless&security=tls&encryption=none&host=fr-v.sshmax.xyz&type=ws&sni=fr-v.sshmax.xyz#@V2rayN_Free
 vless://a7cf209e-533e-4d27-ba0d-f5421de3dd18@104.17.14.48:443?path=%2Fvless&security=tls&encryption=none&host=de-v.sshmax.xyz&type=ws&sni=de-v.sshmax.xyz#@V2rayN_Free
 vless://7bf3545f-f692-4251-b35a-1868db3a34ac@104.17.14.48:443?path=%2Fvless&security=tls&encryption=none&host=us-v.sshmax.xyz&type=ws&sni=us-v.sshmax.xyz#@V2rayN_Free
 vless://298e20f6-2890-4ed5-841d-39716252baff@51.83.134.180:443?path=%2Fvless&security=tls&encryption=none&host=pl3.v2vless.xyz&type=ws&sni=bmi.ir#@V2rayN_Free
