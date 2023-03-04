@@ -127,7 +127,7 @@ func main() {
 					for proto, _ := range configs {
 						if strings.Contains(lines[a], proto) {
 							lines[a] = strings.Replace(lines[a], proto, "\n"+proto, -1)
-							configs["mixed"] += lines[a] + "\n"
+							configs["mixed"] += lines[a] 
 						}
 					}
 				}
