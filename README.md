@@ -46,6 +46,15 @@ row|link
 29|https://t.me/vpn_ocean|
 30|https://t.me/configV2rayForFree|
 31|https://t.me/FreeV2rays|
+32|https://t.me/DigiV2ray|
+33|https://t.me/v2rayNG_VPN|
+34|https://t.me/freev2rayssr|
+35|https://t.me/v2rayn_server|
+36|https://t.me/Shadowlinkserverr|
+37|https://t.me/iranvpnet|
+38|https://t.me/vmess_iran|
+39|https://t.me/mahsaamoon1|
+40|https://t.me/V2RAY_NEW|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
