@@ -5,8 +5,6 @@ trojan://Sp3eDVp@185.212.200.75:443?security=tls&headerType=none&type=tcp#%40v2r
 trojan://e05c749b-7c6b-41b8-9c71-9dcf685edf4a@152.67.162.166:443?security=tls&headerType=none&type=tcp#%40v2rayng_fa
 trojan://cd27884b-c5af-34ec-b75f-8248077818fe@192.9.148.1:5215?security=tls&headerType=none&type=tcp&sni=$b.mg.us.cat77.cloud#%40v2rayng_fa
 trojan://shefelnak@185.16.206.211:443?security=tls&headerType=none&type=tcp#%40v2rayng_org-
-trojan://4cfb5b98-5a9d-4c6d-8911-25deca297fa1@air-osaka24.900513.xyz:7758?security=tls&headerType=none&type=tcp#%40v2rayng_org
-trojan://xxoo@194.156.99.39:443?security=tls&headerType=none&type=tcp#%40v2rayng_org
 trojan://6b0333aab4d046ebacc35e04f426cb82@sg01.shenzhouplus.cf:10009?security=tls&headerType=none&type=tcp#%40v2rayng_org
 trojan://cd27884b-c5af-34ec-b75f-8248077818fe@192.9.148.1:5215?security=tls&headerType=none&type=tcp&sni=$b.mg.us.cat77.cloud#%40v2rayng_org
 trojan://xxoo@138.124.183.216:443?security=tls&headerType=none&type=tcp#%40v2rayng_org
@@ -123,7 +121,6 @@ trojan://ysStXdjqZJ@linux.seatech.ir:8080#%40WeePeeN%20-%20We%20Are%20Here%203
 trojan://8lbkFQT2J8@pwa.persiankid.ir:2052#%40WeePeeN%20-%20Night's%20Watch%203%20%F0%9F%90%BA
 trojan://q37K55b8FE@linux.seatech.ir:24589#%40WeePeeN
 trojan://hJyt8WoO2S@pwa.persiankid.ir:8443#%40WeePeeN%20-%20Rey%203
-trojan://ff478153-9df6-4a86-bb72-7bfc28532e45@165.22.30.47:443?security=tls&headerType=none&type=tcp&sni=soft98.ir#%40V2ray_NG%F0%9F%87%AE%F0%9F%87%B7
 trojan://5FTlL946VG@fc.v2rayngvz.online:2087?path=%2F&security=tls&host=neronix.sadeghij87.workers.dev%2Fcf.v2rayngvz.online&type=ws&sni=fc.v2rayngvz.online#%40V2ray_NG%F0%9F%87%AB%F0%9F%87%AE
 trojan://tvRqMFmVhZ@45.85.118.83:8443?mode=gun&security=tls&type=grpc&serviceName=@v2rayNG_VPNN&sni=dmm.v2rayngvz.online#%40V2ray_NG%F0%9F%87%AB%F0%9F%87%AE
 trojan://eea50240-af91-11ed-b638-205c6d5f5d78@104.251.123.106:443?mode=gun&security=tls&type=grpc&serviceName=trgrpc&sni=bmi.ir#US

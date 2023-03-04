@@ -46,6 +46,8 @@ vless://188c57cf-83dd-476b-9f5f-f69af78fe6e4@archive.idealhome.ir:664/?type=ws&s
 vless://257f775d-28cd-4410-e9aa-a16642cc8f33@fre.jack7564.xyz:41066?path=%2F&security=tls&encryption=none&host=Fre.jack7564.xyz&type=ws&sni=Fre.jack7564.xyz#%40V2ray_NG%F0%9F%87%A9%F0%9F%87%AA
 vless://cc7226ee-930a-4365-9d68-68bd0361b5ba@mtn2.limitedhighspeed.online:2087?mode=gun&security=tls&encryption=none&type=grpc&serviceName=&sni=fast.3iamak.space#%40V2ray_NG%F0%9F%87%A9%F0%9F%87%AA
 vless://438074ed-22e4-4f16-b16c-c4bf4a5bba08@s13.gsmpartsis.sbs:13027?security=none&encryption=none&host=alibaba.ir&headerType=http&type=tcp#%40V2ray_NG%F0%9F%87%A9%F0%9F%87%AA
+vless://65756824-435e-47c0-ff31-b24a5405e79d@116.203.11.168:2052?security=none&encryption=none&host=bmi.ir&headerType=http&type=tcp#%40V2ray_NG%F0%9F%87%A9%F0%9F%87%AA
+vless://875ec245-7366-48dc-8756-e8889fec8816@de.kaia.pw:8080?path=%2F&security=none&encryption=none&type=ws#%40V2ray_NG%F0%9F%87%A9%F0%9F%87%AA
 vless://b7793807-b6bb-4827-aaec-d41a8817110a@51.38.99.96:443?security=xtls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct&sni=BMI.ir#Germany
 vless://17c7c2b5-6d9d-5488-9466-d5837cc90d19@amir.mylullaby9.fun:1123?security=tls&encryption=none&headerType=none&type=tcp#Germany
 vless://7916a499-d010-1ff4-228c-8b93e85de84a@d4.wewillwin.me:44859?type=tcp&security=none&host=codepen.io&path=%2F&headerType=http#UK
