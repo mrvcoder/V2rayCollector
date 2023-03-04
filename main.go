@@ -77,8 +77,6 @@ func main() {
 		"https://t.me/s/V2RayOxygen",
 		"https://t.me/s/Network_442",
 		"https://t.me/s/VPN_443",
-		
-		
 	}
 
 	configs := map[string]string{
@@ -86,6 +84,7 @@ func main() {
 		"trojan": "",
 		"vless":  "",
 		"ss":     "",
+		"mixed":  "",
 	}
 
 	protocol := ""
@@ -122,13 +121,16 @@ func main() {
 		if all_messages == true {
 			doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
 				// For each item found, get the band and title
-				code := s.Text()
-				protocol = strings.Split(code, "://")[0]
-				for proto, _ := range configs {
-					if protocol == proto {
-						configs[proto] += code + "\n"
+				message_text := s.Text()
+				lines := strings.Split(message_text, "\n")
+				for a := 0; a < len(lines); a++ {
+					for proto, _ := range configs {
+						if strings.Contains(lines[a], proto) {
+							configs["mixed"] += lines[a] + "\n"
+						}
 					}
 				}
+
 			})
 		} else {
 			doc.Find("code").Each(func(j int, s *goquery.Selection) {
