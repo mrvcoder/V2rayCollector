@@ -31,6 +31,7 @@ jobs:
         git add ./trojan_iran.txt
         git add ./vless_iran.txt
         git add ./ss_iran.txt
+        git add ./mixed_iran.txt
         git checkout main
         git commit -m "✔️ $(date '+%Y-%m-%d %H:%M:%S') Collected"
     - name: Push Changes
