@@ -22,7 +22,7 @@ func main() {
 		"https://t.me/s/V2rayNGvpni",
 		"https://t.me/s/custom_14",
 		"https://t.me/s/v2rayNG_VPNN",
-		"https://t.me/s/v2ray_outlineir",
+		"https://t.me/s/FreeV2rays{all_messages}",
 	}
 
 	configs := map[string]string{
@@ -33,7 +33,13 @@ func main() {
 	}
 
 	protocol := ""
+	all_messages := false
 	for i := 0; i < len(channels); i++ {
+		if strings.Contains(channels[i], "{all_messages}") {
+			all_messages = true
+			channels[i] = strings.Split(channels[i], "{all_messages}")[0]
+		}
+
 		req, err := http.NewRequest("GET", channels[i], nil)
 		if err != nil {
 			log.Fatalf("Error When requesting to: %d Error : %s", channels[i], err)
@@ -51,21 +57,35 @@ func main() {
 		}
 
 		messages := doc.Find(".tgme_widget_message_wrap").Length()
-		if messages < 150 {
-			link, _ := doc.Find(".tme_messages_more").Attr("href")
+		link, exist := doc.Find(".tme_messages_more").Attr("href")
+		if messages < 150 && exist == true {
 			number := strings.Split(link, "=")[1]
 			doc = GetMessages(150, doc, number, channels[i])
 		}
-		doc.Find("code").Each(func(j int, s *goquery.Selection) {
-			// For each item found, get the band and title
-			code := s.Text()
-			protocol = strings.Split(code, "://")[0]
-			for proto, _ := range configs {
-				if protocol == proto {
-					configs[proto] += code + "\n"
+
+		if all_messages == true {
+			doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
+				// For each item found, get the band and title
+				code := s.Text()
+				protocol = strings.Split(code, "://")[0]
+				for proto, _ := range configs {
+					if protocol == proto {
+						configs[proto] += code + "\n"
+					}
 				}
-			}
-		})
+			})
+		} else {
+			doc.Find("code").Each(func(j int, s *goquery.Selection) {
+				// For each item found, get the band and title
+				code := s.Text()
+				protocol = strings.Split(code, "://")[0]
+				for proto, _ := range configs {
+					if protocol == proto {
+						configs[proto] += code + "\n"
+					}
+				}
+			})
+		}
 
 	}
 
