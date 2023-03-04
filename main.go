@@ -114,9 +114,9 @@ func main() {
 
 		messages := doc.Find(".tgme_widget_message_wrap").Length()
 		link, exist := doc.Find(".tme_messages_more").Attr("href")
-		if messages < 150 && exist == true {
+		if messages < 300 && exist == true {
 			number := strings.Split(link, "=")[1]
-			doc = GetMessages(150, doc, number, channels[i])
+			doc = GetMessages(300, doc, number, channels[i])
 		}
 
 		if all_messages == true {
