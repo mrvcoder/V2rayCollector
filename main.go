@@ -48,6 +48,15 @@ func main() {
 		"https://t.me/s/vpn_ocean",
 		"https://t.me/s/configV2rayForFree",
 		"https://t.me/s/FreeV2rays{all_messages}",
+		"https://t.me/s/DigiV2ray",
+		"https://t.me/s/v2rayNG_VPN",
+		"https://t.me/s/freev2rayssr",
+		"https://t.me/s/v2rayn_server",
+		"https://t.me/s/Shadowlinkserverr",
+		"https://t.me/s/iranvpnet",
+		"https://t.me/s/vmess_iran",
+		"https://t.me/s/mahsaamoon1",
+		"https://t.me/s/V2RAY_NEW",
 	}
 
 	configs := map[string]string{
