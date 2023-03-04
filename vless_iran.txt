@@ -7,6 +7,7 @@ vless://29281351-acf2-4b08-9dcc-97de24aed5da@id.artunnel57.host:443?security=xtl
 vless://a7728b21-42b9-4fea-8b05-8be16336643c@id.artunnel57.host:443?security=tls&encryption=none&type=ws&headerType=none&path=%252FCUSTOMPATH&sni=id.artunnel57.host&host=id.artunnel57.host#Vless_WS_tls(CustomPath)
 vless://a7728b21-42b9-4fea-8b05-8be16336643c@id.artunnel57.host:80?security=none&encryption=none&type=ws&headerType=none&path=%252FCUSTOMPATH&host=id.artunnel57.host#Vless_WS_ntls(CustomPath)
 vless://cc375c51-6cae-4f84-ad46-3d0468ac6429@online.4zkaban.xyz:8880?path=%2FAzkaban_Online&security=none&encryption=none&host=Azkaban-Online-01.azkaban-07.buzz&type=ws#%40v2_vmess
+vless://0b00bece-21f5-4623-8b47-547923531970@de.kaia.pw:40159?path=%2F&security=none&encryption=none&type=ws#%40v2_vmess
 vless://35307786-06b2-46a1-b321-1f206263a473@ir22.arsalan-vz.sbs:80?security=none&encryption=none&host=bmi.ir&headerType=http&type=tcp#(@FreeVlessVpn)
 vless://d327184c-da8e-45c9-8495-5ff48be8fdb0@ir22.arsalan-vz.sbs:80?security=none&encryption=none&host=bmi.ir&headerType=http&type=tcp#(@FreeVlessVpn)
 vless://6a5221b8-dc6c-4397-b686-8ecfab85a462@i1.arsalanv2.sbs:443?security=none&encryption=none&host=bmi.ir&headerType=http&type=tcp#(@FreeVlessVpn)
