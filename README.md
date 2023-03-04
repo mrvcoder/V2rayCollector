@@ -11,7 +11,7 @@ Vmess         |https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/vm
 ShadowSocks        |https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/ss_iran.txt  |
 Trojan |https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/trojan_iran.txt|
 Vless|https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/vless_iran.txt|
-Mixed|https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/mixed_iran.txt|
+Mixed (configs of this are different)|https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/mixed_iran.txt|
 
 # Telegram channels list that used as source 😉 
 
