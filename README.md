@@ -55,6 +55,26 @@ row|link
 38|https://t.me/vmess_iran|
 39|https://t.me/mahsaamoon1|
 40|https://t.me/V2RAY_NEW|
+41|https://t.me/v2RayChannel|
+42|https://t.me/configV2rayNG|
+43|https://t.me/config_v2ray|
+44|https://t.me/s/vpn_proxy_custom|
+45|https://t.me/vpnmasi|
+46|https://t.me/v2ray_custom|
+47|https://t.me/VPNCUSTOMIZE|
+48|https://t.me/HTTPCustomLand|
+49|https://t.me/vpn_proxy_custom|
+50|https://t.me/ViPVpn_v2ray|
+51|https://t.me/FreeNet1500|
+52|https://t.me/v2ray_ar|
+53|https://t.me/beta_v2ray|
+54|https://t.me/vip_vpn_2022|
+55|https://t.me/FOX_VPN66|
+56|https://t.me/VorTexIRN|
+57|https://t.me/YtTe3la|
+58|https://t.me/V2RayOxygen|
+59|https://t.me/Network_442|
+60|https://t.me/VPN_443|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
