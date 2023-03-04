@@ -45,6 +45,7 @@ row|link
 28|https://t.me/free4allVPN|
 29|https://t.me/vpn_ocean|
 30|https://t.me/configV2rayForFree|
+31|https://t.me/FreeV2rays|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
