@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -80,14 +81,21 @@ func main() {
 	}
 
 	configs := map[string]string{
+		"ss":     "",
 		"vmess":  "",
 		"trojan": "",
 		"vless":  "",
-		"ss":     "",
 		"mixed":  "",
 	}
 
-	protocol := ""
+	myregex := map[string]string{
+		"ss":     `(.{3})ss:\/\/`,
+		"vmess":  `vmess:\/\/`,
+		"trojan": `trojan:\/\/`,
+		"vless":  `vless:\/\/`,
+	}
+
+	//protocol := ""
 	all_messages := false
 	for i := 0; i < len(channels); i++ {
 		if strings.Contains(channels[i], "{all_messages}") {
@@ -112,22 +120,27 @@ func main() {
 		}
 
 		messages := doc.Find(".tgme_widget_message_wrap").Length()
-		link, exist := doc.Find(".tme_messages_more").Attr("href")
-		if messages < 300 && exist == true {
+		link, exist := doc.Find(".js-messages_more").Attr("href")
+		if messages < 500 && exist == true {
 			number := strings.Split(link, "=")[1]
-			doc = GetMessages(300, doc, number, channels[i])
+			doc = GetMessages(500, doc, number, channels[i])
 		}
 
 		if all_messages == true {
+			fmt.Println(doc.Find(".js-widget_message_wrap").Length())
 			doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
 				// For each item found, get the band and title
 				message_text := s.Text()
 				lines := strings.Split(message_text, "\n")
 				for a := 0; a < len(lines); a++ {
+					for _, regex_value := range myregex {
+						re := regexp.MustCompile(regex_value)
+						lines[a] = re.ReplaceAllStringFunc(lines[a], func(match string) string {
+							return "\n" + match
+						})
+					}
 					for proto, _ := range configs {
 						if strings.Contains(lines[a], proto) {
-							// lines[a] = strings.Replace(lines[a], "\n", "", -1)
-							// lines[a] = strings.Replace(lines[a], proto, "\n"+proto, -1)
 							configs["mixed"] += "\n" + lines[a] + "\n"
 						}
 					}
@@ -137,11 +150,51 @@ func main() {
 		} else {
 			doc.Find("code").Each(func(j int, s *goquery.Selection) {
 				// For each item found, get the band and title
-				code := s.Text()
-				protocol = strings.Split(code, "://")[0]
-				for proto, _ := range configs {
-					if protocol == proto {
-						configs[proto] += code + "\n"
+				message_text := s.Text()
+				lines := strings.Split(message_text, "\n")
+				for a := 0; a < len(lines); a++ {
+					for proto_regex, regex_value := range myregex {
+						re := regexp.MustCompile(regex_value)
+						lines[a] = re.ReplaceAllStringFunc(lines[a], func(match string) string {
+							if proto_regex == "ss" {
+								if match[:3] == "vme" {
+									return "\n" + match
+								} else if match[:3] == "vle" {
+									return "\n" + match
+								} else {
+									return "\n" + match
+								}
+							} else {
+								return "\n" + match
+							}
+						})
+
+						if len(strings.Split(lines[a], "\n")) > 1 {
+							myconfigs := strings.Split(lines[a], "\n")
+							for i := 0; i < len(myconfigs); i++ {
+								if myconfigs[i] != "" {
+
+									re := regexp.MustCompile(regex_value)
+									myconfigs[i] = strings.ReplaceAll(myconfigs[i], " ", "")
+									match := re.FindStringSubmatch(myconfigs[i])
+									if len(match) >= 1 {
+										if proto_regex == "ss" {
+											if match[1][:3] == "vme" {
+												configs["vmess"] += "\n" + myconfigs[i] + "\n"
+											} else if match[1][:3] == "vle" {
+												configs["vless"] += "\n" + myconfigs[i] + "\n"
+											} else {
+												configs["ss"] += "\n" + myconfigs[i] + "\n"
+											}
+										} else {
+											configs[proto_regex] += "\n" + myconfigs[i] + "\n"
+										}
+									}
+
+								}
+
+							}
+						}
 					}
 				}
 			})
@@ -199,23 +252,29 @@ func load_more(link string) *goquery.Document {
 func GetMessages(length int, doc *goquery.Document, number string, channel string) *goquery.Document {
 	x := load_more(channel + "?before=" + number)
 
-	html1, _ := x.Html()
-	html2, _ := doc.Html()
+	html2, _ := x.Html()
+	reader2 := strings.NewReader(html2)
+	doc2, _ := goquery.NewDocumentFromReader(reader2)
 
-	combinedHtml := strings.Join([]string{html1, html2}, "")
+	doc.Find("body").AppendSelection(doc2.Find("body").Children())
 
-	newDoc, _ := goquery.NewDocumentFromReader(strings.NewReader(combinedHtml))
-
-	messages := newDoc.Find(".tgme_widget_message_wrap").Length()
+	newDoc := goquery.NewDocumentFromNode(doc.Selection.Nodes[0])
+	// fmt.Println(newDoc.Find(".js-messages_more").Attr("href"))
+	messages := newDoc.Find(".js-widget_message_wrap").Length()
+	_, exist := newDoc.Find(".js-messages_more").Attr("href")
 
 	fmt.Println(messages)
 	if messages > length {
 		return newDoc
 	} else {
-		num, _ := strconv.Atoi(number)
-		n := num + 1
-		ns := strconv.Itoa(n)
-		GetMessages(length, newDoc, ns, channel)
+		if exist == true {
+			num, _ := strconv.Atoi(number)
+			n := num - 1
+			ns := strconv.Itoa(n)
+			GetMessages(length, newDoc, ns, channel)
+		} else {
+			return newDoc
+		}
 	}
 
 	return newDoc
