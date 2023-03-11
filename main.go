@@ -121,9 +121,9 @@ func main() {
 
 		messages := doc.Find(".tgme_widget_message_wrap").Length()
 		link, exist := doc.Find(".js-messages_more").Attr("href")
-		if messages < 500 && exist == true {
+		if messages < 100 && exist == true {
 			number := strings.Split(link, "=")[1]
-			doc = GetMessages(500, doc, number, channels[i])
+			doc = GetMessages(100, doc, number, channels[i])
 		}
 
 		if all_messages == true {
@@ -173,7 +173,6 @@ func main() {
 							myconfigs := strings.Split(lines[a], "\n")
 							for i := 0; i < len(myconfigs); i++ {
 								if myconfigs[i] != "" {
-
 									re := regexp.MustCompile(regex_value)
 									myconfigs[i] = strings.ReplaceAll(myconfigs[i], " ", "")
 									match := re.FindStringSubmatch(myconfigs[i])
@@ -184,7 +183,7 @@ func main() {
 											} else if match[1][:3] == "vle" {
 												configs["vless"] += "\n" + myconfigs[i] + "\n"
 											} else {
-												configs["ss"] += "\n" + myconfigs[i] + "\n"
+												configs["ss"] += "\n" + myconfigs[i][3:] + "\n"
 											}
 										} else {
 											configs[proto_regex] += "\n" + myconfigs[i] + "\n"
@@ -203,7 +202,9 @@ func main() {
 	}
 
 	for proto, configcontent := range configs {
-		WriteToFile(configcontent, proto+"_iran.txt")
+		lines := strings.Split(configcontent, "\n")
+		reversed := reverse(lines)
+		WriteToFile(strings.Join(reversed, "\n"), proto+"_iran.txt")
 	}
 
 }
@@ -278,4 +279,12 @@ func GetMessages(length int, doc *goquery.Document, number string, channel strin
 	}
 
 	return newDoc
+}
+
+func reverse(lines []string) []string {
+	for i := 0; i < len(lines)/2; i++ {
+		j := len(lines) - i - 1
+		lines[i], lines[j] = lines[j], lines[i]
+	}
+	return lines
 }
