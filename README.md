@@ -4,14 +4,15 @@ This project crawls v2ray configs from Telegram channels. And the list will upda
 
 # How to use this ?! 🤔
 
+‼ Github banned github actions on my account :( so you can use the list below Or you can fork this repo and enable github actions on your account and use your own subs links :)  
 It is so easy just go ahead and download a V2ray Client App that **supports subscription link** and use these links as subscription link 🤩
 Config Type|subscription link
 -------------------------------|-----------------------------|
-Vmess         |https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/vmess_iran.txt      |
-ShadowSocks        |https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/ss_iran.txt  |
-Trojan |https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/trojan_iran.txt|
-Vless|https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/vless_iran.txt|
-Mixed (configs of this are different)|https://raw.githubusercontent.com/mrvcoder/V2rayCollector/main/mixed_iran.txt|
+Vmess         |https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vmess_iran.txt      |
+ShadowSocks        |https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/ss_iran.txt  |
+Trojan |https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/trojan_iran.txt|
+Vless|https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vless_iran.txt|
+Mixed (configs of this are different)|https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/mixed_iran.txt|
 
 # Telegram channels list that used as source 😉 
 
