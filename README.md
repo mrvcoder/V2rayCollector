@@ -80,6 +80,7 @@ row|link
 58|https://t.me/V2RayOxygen|
 59|https://t.me/Network_442|
 60|https://t.me/VPN_443|
+61|https://t.me/v2rayng_v|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
