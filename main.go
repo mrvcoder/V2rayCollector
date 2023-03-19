@@ -205,9 +205,12 @@ func main() {
 	}
 
 	for proto, configcontent := range configs {
-		lines := strings.Split(configcontent, "\n")
-		reversed := reverse(lines)
-		WriteToFile(strings.Join(reversed, "\n"), proto+"_iran.txt")
+		// 		reverse mode :
+// 		lines := strings.Split(configcontent, "\n")
+// 		reversed := reverse(lines)
+// 		WriteToFile(strings.Join(reversed, "\n"), proto+"_iran.txt")
+		// 		simple mode :
+		WriteToFile(configcontent, proto+"_iran.txt")
 	}
 
 }
