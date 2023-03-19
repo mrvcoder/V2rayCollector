@@ -78,6 +78,7 @@ func main() {
 		"https://t.me/s/V2RayOxygen",
 		"https://t.me/s/Network_442",
 		"https://t.me/s/VPN_443",
+		"https://t.me/s/v2rayng_v",
 	}
 
 	configs := map[string]string{
@@ -96,8 +97,8 @@ func main() {
 	}
 
 	//protocol := ""
-	all_messages := false
 	for i := 0; i < len(channels); i++ {
+		all_messages := false
 		if strings.Contains(channels[i], "{all_messages}") {
 			all_messages = true
 			channels[i] = strings.Split(channels[i], "{all_messages}")[0]
@@ -120,13 +121,15 @@ func main() {
 		}
 
 		messages := doc.Find(".tgme_widget_message_wrap").Length()
-		link, exist := doc.Find(".js-messages_more").Attr("href")
+		link, exist := doc.Find(".tgme_widget_message_wrap .js-widget_message").Last().Attr("data-post")
 		if messages < 100 && exist == true {
-			number := strings.Split(link, "=")[1]
+			number := strings.Split(link, "/")[1]
+			fmt.Println(number)
+
 			doc = GetMessages(100, doc, number, channels[i])
 		}
 
-		if all_messages == true {
+		if all_messages {
 			fmt.Println(doc.Find(".js-widget_message_wrap").Length())
 			doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
 				// For each item found, get the band and title
@@ -148,7 +151,7 @@ func main() {
 
 			})
 		} else {
-			doc.Find("code").Each(func(j int, s *goquery.Selection) {
+			doc.Find("code,pre").Each(func(j int, s *goquery.Selection) {
 				// For each item found, get the band and title
 				message_text := s.Text()
 				lines := strings.Split(message_text, "\n")
@@ -257,20 +260,20 @@ func GetMessages(length int, doc *goquery.Document, number string, channel strin
 	reader2 := strings.NewReader(html2)
 	doc2, _ := goquery.NewDocumentFromReader(reader2)
 
+	// _, exist := doc.Find(".js-messages_more").Attr("href")
 	doc.Find("body").AppendSelection(doc2.Find("body").Children())
 
 	newDoc := goquery.NewDocumentFromNode(doc.Selection.Nodes[0])
 	// fmt.Println(newDoc.Find(".js-messages_more").Attr("href"))
 	messages := newDoc.Find(".js-widget_message_wrap").Length()
-	_, exist := newDoc.Find(".js-messages_more").Attr("href")
 
 	fmt.Println(messages)
 	if messages > length {
 		return newDoc
 	} else {
-		if exist == true {
-			num, _ := strconv.Atoi(number)
-			n := num - 1
+		num, _ := strconv.Atoi(number)
+		n := num - 21
+		if n > 0 {
 			ns := strconv.Itoa(n)
 			GetMessages(length, newDoc, ns, channel)
 		} else {
@@ -288,3 +291,35 @@ func reverse(lines []string) []string {
 	}
 	return lines
 }
+
+// func RemoveDuplicate(filename string){
+// 	file, err := os.Open(filename)
+//     if err != nil {
+//         log.Fatal(err)
+//     }
+//     defer file.Close()
+
+//     uniqueLines := make(map[string]bool)
+
+//     scanner := bufio.NewScanner(file)
+//     for scanner.Scan() {
+//         line := scanner.Text()
+//         if !uniqueLines[line] {
+//             uniqueLines[line] = true
+//         }
+//     }
+//     if err := scanner.Err(); err != nil {
+//         log.Fatal(err)
+//     }
+
+//     output, err := os.Create("output.txt")
+//     if err != nil {
+//         log.Fatal(err)
+//     }
+//     defer output.Close()
+
+// 	 // Remove the input file
+// 	 if err := os.Remove(inputFile); err != nil {
+//         log.Fatal(err)
+//     }
+// }
