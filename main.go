@@ -206,11 +206,11 @@ func main() {
 
 	for proto, configcontent := range configs {
 		// 		reverse mode :
-// 		lines := strings.Split(configcontent, "\n")
-// 		reversed := reverse(lines)
-// 		WriteToFile(strings.Join(reversed, "\n"), proto+"_iran.txt")
+		// 		lines := strings.Split(configcontent, "\n")
+		// 		reversed := reverse(lines)
+		// 		WriteToFile(strings.Join(reversed, "\n"), proto+"_iran.txt")
 		// 		simple mode :
-		WriteToFile(configcontent, proto+"_iran.txt")
+		WriteToFile(RemoveDuplicate(configcontent), proto+"_iran.txt")
 	}
 
 }
@@ -295,34 +295,31 @@ func reverse(lines []string) []string {
 	return lines
 }
 
-// func RemoveDuplicate(filename string){
-// 	file, err := os.Open(filename)
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-//     defer file.Close()
+func RemoveDuplicate(config string) string {
+	lines := strings.Split(config, "\n")
 
-//     uniqueLines := make(map[string]bool)
+	// Use a map to keep track of unique lines
+	uniqueLines := make(map[string]bool)
 
-//     scanner := bufio.NewScanner(file)
-//     for scanner.Scan() {
-//         line := scanner.Text()
-//         if !uniqueLines[line] {
-//             uniqueLines[line] = true
-//         }
-//     }
-//     if err := scanner.Err(); err != nil {
-//         log.Fatal(err)
-//     }
+	// Loop over lines and add unique lines to map
+	for _, line := range lines {
+		if len(line) > 0 {
+			uniqueLines[line] = true
+		}
+	}
 
-//     output, err := os.Create("output.txt")
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-//     defer output.Close()
+	// Join unique lines into a string
+	uniqueString := strings.Join(getKeys(uniqueLines), "\n")
 
-// 	 // Remove the input file
-// 	 if err := os.Remove(inputFile); err != nil {
-//         log.Fatal(err)
-//     }
-// }
+	return uniqueString
+}
+
+func getKeys(m map[string]bool) []string {
+	keys := make([]string, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
