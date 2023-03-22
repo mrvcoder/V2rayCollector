@@ -81,6 +81,7 @@ row|link
 59|https://t.me/Network_442|
 60|https://t.me/VPN_443|
 61|https://t.me/v2rayng_v|
+62|https://t.me/ultrasurf_12|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
