@@ -79,6 +79,7 @@ func main() {
 		"https://t.me/s/Network_442",
 		"https://t.me/s/VPN_443",
 		"https://t.me/s/v2rayng_v",
+		"https://t.me/s/ultrasurf_12",
 	}
 
 	configs := map[string]string{
