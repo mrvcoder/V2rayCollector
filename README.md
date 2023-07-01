@@ -82,6 +82,14 @@ row|link
 60|https://t.me/VPN_443|
 61|https://t.me/v2rayng_v|
 62|https://t.me/ultrasurf_12|
+63|https://t.me/s/iSeqaro|
+64|https://t.me/s/frev2rayng|
+65|https://t.me/s/frev2ray|
+66|https://t.me/s/FreakConfig|
+67|https://t.me/s/Awlix_ir|
+68|https://t.me/s/v2rayngvpn|
+69|https://t.me/s/God_CONFIG|
+70|https://t.me/s/Configforvpn01|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
