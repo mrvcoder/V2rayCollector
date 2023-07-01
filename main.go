@@ -37,7 +37,7 @@ func main() {
 		"https://t.me/s/ShadowsocksM",
 		"https://t.me/s/shadowsocksshop",
 		"https://t.me/s/v2rayan",
-		"https://t.me/ShadowSocks_s",
+		"https://t.me/s/ShadowSocks_s",
 		"https://t.me/s/VmessProtocol",
 		"https://t.me/s/napsternetv_config",
 		"https://t.me/s/Easy_Free_VPN",
@@ -80,6 +80,14 @@ func main() {
 		"https://t.me/s/VPN_443",
 		"https://t.me/s/v2rayng_v",
 		"https://t.me/s/ultrasurf_12",
+		"https://t.me/s/iSeqaro{all_messages}",
+		"https://t.me/s/frev2rayng",
+		"https://t.me/s/frev2ray",
+		"https://t.me/s/FreakConfig",
+		"https://t.me/s/Awlix_ir",
+		"https://t.me/s/v2rayngvpn",
+		"https://t.me/s/God_CONFIG{all_messages}",
+		"https://t.me/s/Configforvpn01",
 	}
 
 	configs := map[string]string{
