@@ -90,6 +90,17 @@ row|link
 68|https://t.me/v2rayngvpn|
 69|https://t.me/God_CONFIG|
 70|https://t.me/Configforvpn01|
+71|https://t.me/polproxy|
+72|https://t.me/v2rayvpnchannel|
+73|https://t.me/proxy_mtm|
+74|https://t.me/vpn_ioss{all_messages}|
+75|https://t.me/V2Ray_FreedomIran|
+76|https://t.me/v2rayfree1|
+76|https://t.me/free_v2rayyy|
+77|https://t.me/nx_v2ray|
+78|https://t.me/nufilter|
+79|https://t.me/Free_HTTPCustom|
+80|https://t.me/customv2ray|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
