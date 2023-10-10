@@ -88,6 +88,17 @@ func main() {
 		"https://t.me/s/v2rayngvpn",
 		"https://t.me/s/God_CONFIG{all_messages}",
 		"https://t.me/s/Configforvpn01",
+		"https://t.me/s/polproxy",
+		"https://t.me/s/v2rayvpnchannel",
+		"https://t.me/s/proxy_mtm",
+		"https://t.me/s/vpn_ioss{all_messages}",
+		"https://t.me/s/V2Ray_FreedomIran",
+		"https://t.me/s/v2rayfree1",
+		"https://t.me/s/free_v2rayyy",
+		"https://t.me/s/nx_v2ray",
+		"https://t.me/s/nufilter",
+		"https://t.me/s/Free_HTTPCustom",
+		"https://t.me/s/customv2ray",
 	}
 
 	configs := map[string]string{
