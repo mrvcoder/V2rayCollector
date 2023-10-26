@@ -126,7 +126,7 @@ func main() {
 
 		req, err := http.NewRequest("GET", channels[i], nil)
 		if err != nil {
-			log.Fatalf("Error When requesting to: %d Error : %s", channels[i], err)
+			log.Fatalf("Error When requesting to: %s Error : %s", channels[i], err) //fixed
 		}
 
 		resp, err1 := client.Do(req)
@@ -142,7 +142,7 @@ func main() {
 
 		messages := doc.Find(".tgme_widget_message_wrap").Length()
 		link, exist := doc.Find(".tgme_widget_message_wrap .js-widget_message").Last().Attr("data-post")
-		if messages < 100 && exist == true {
+		if messages < 100 && exist{ 
 			number := strings.Split(link, "/")[1]
 			fmt.Println(number)
 
