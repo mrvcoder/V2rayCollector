@@ -18,11 +18,9 @@ var client = &http.Client{}
 func main() {
 
 	channels := []string{
-		"https://t.me/s/v2rayng_fa2",
 		"https://t.me/s/v2rayng_org",
-		"https://t.me/s/V2rayNGvpni",
-		"https://t.me/s/custom_14",
-		"https://t.me/s/v2rayNG_VPNN",
+		"https://t.me/s/v2rayngvpn",
+		"https://t.me/s/flyv2ray",
 		"https://t.me/s/v2ray_outlineir",
 		"https://t.me/s/v2_vmess",
 		"https://t.me/s/FreeVlessVpn",
@@ -99,6 +97,26 @@ func main() {
 		"https://t.me/s/nufilter",
 		"https://t.me/s/Free_HTTPCustom",
 		"https://t.me/s/customv2ray",
+		"https://t.me/s/vpn_Nv1",
+		"https://t.me/s/AliAlma_GSM{all_messages}",
+		"https://t.me/s/reality_daily{all_messages}",
+		"https://t.me/s/shopingv2ray",
+		"https://t.me/s/v2rayng_vpnrog",
+		"https://t.me/s/ServerNett",
+		"https://t.me/s/MT_TEAM_IRAN",
+		"https://t.me/s/V2ray_Team",
+		"https://t.me/s/VpnProsecc",
+		"https://t.me/s/ConfigsHUB",
+		"https://t.me/s/melov2ray",
+		"https://t.me/s/V2pedia",
+		"https://t.me/s/FalconPolV2rayNG",
+		"https://t.me/s/ShadowProxy66",
+		"https://t.me/s/VPNCUSTOMIZE",
+		"https://t.me/s/prrofile_purple",
+		"https://t.me/s/MsV2ray",
+		"https://t.me/s/VlessConfig",
+		"https://t.me/s/vless_vmess",
+		"https://t.me/s/MehradLearn",
 	}
 
 	configs := map[string]string{
