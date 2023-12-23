@@ -117,6 +117,26 @@ func main() {
 		"https://t.me/s/VlessConfig",
 		"https://t.me/s/vless_vmess",
 		"https://t.me/s/MehradLearn",
+		"https://t.me/s/kingofilter",
+		"https://t.me/s/IRN_VPN",
+		"https://t.me/s/V2raysFree",
+		"https://t.me/s/SvnTeam",
+		"https://t.me/s/flyv2ray",
+		"https://t.me/s/free1_vpn",
+		"https://t.me/s/UnlimitedDev",
+		"https://t.me/s/vpn_xw",
+		"https://t.me/s/V2RayTz",
+		"https://t.me/s/ipV2Ray",
+		"https://t.me/s/OutlineVpnOfficial",
+		"https://t.me/s/mehrosaboran",
+		"https://t.me/s/mftizi",
+		"https://t.me/s/https_config_injector",
+		"https://t.me/s/Hope_Net",
+		"https://t.me/s/V2rayng_Fast",
+		"https://t.me/s/DailyV2RY",
+		"https://t.me/s/shh_proxy",
+		"https://t.me/s/forwardv2ray",
+		"https://t.me/s/Lockey_vpn",
 	}
 
 	configs := map[string]string{
@@ -160,7 +180,7 @@ func main() {
 
 		messages := doc.Find(".tgme_widget_message_wrap").Length()
 		link, exist := doc.Find(".tgme_widget_message_wrap .js-widget_message").Last().Attr("data-post")
-		if messages < 100 && exist{ 
+		if messages < 100 && exist {
 			number := strings.Split(link, "/")[1]
 			fmt.Println(number)
 

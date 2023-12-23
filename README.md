@@ -93,7 +93,7 @@ row|link
 71|https://t.me/polproxy|
 72|https://t.me/v2rayvpnchannel|
 73|https://t.me/proxy_mtm|
-74|https://t.me/vpn_ioss{all_messages}|
+74|https://t.me/vpn_ioss|
 75|https://t.me/V2Ray_FreedomIran|
 76|https://t.me/v2rayfree1|
 76|https://t.me/free_v2rayyy|
@@ -121,6 +121,26 @@ row|link
 98|https://t.me/VlessConfig|
 99|https://t.me/vless_vmess|
 100|https://t.me/MehradLearn|
+101|https://t.me/kingofilter|
+102|https://t.me/IRN_VPN|
+103|https://t.me/V2raysFree|
+104|https://t.me/SvnTeam|
+105|https://t.me/flyv2ray|
+106|https://t.me/free1_vpn|
+107|https://t.me/UnlimitedDev|
+108|https://t.me/vpn_xw|
+109|https://t.me/V2RayTz|
+110|https://t.me/ipV2Ray|
+111|https://t.me/OutlineVpnOfficial|
+112|https://t.me/mehrosaboran|
+113|https://t.me/mftizi|
+114|https://t.me/https_config_injector|
+115|https://t.me/Hope_Net|
+116|https://t.me/V2rayng_Fast|
+117|https://t.me/DailyV2RY|
+118|https://t.me/shh_proxy|
+119|https://t.me/forwardv2ray|
+120|https://t.me/Lockey_vpn|
 
 If you know other telegram channels which they put V2ray Configs feel free to pull them :)
 
