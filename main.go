@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mrvcoder/V2rayCollector/collector"
 )
@@ -214,7 +215,16 @@ var defaultChannelsConfig = []string{
 
 func main() {
 	configs := collector.GetConfigs(defaultChannelsConfig)
-	WriteToFile(configs, "iran.txt")
+
+	for proto, configcontent := range configs {
+		// 		reverse mode :
+		// 		lines := strings.Split(configcontent, "\n")
+		// 		reversed := reverse(lines)
+		// 		WriteToFile(strings.Join(reversed, "\n"), proto+"_iran.txt")
+		// 		simple mode :
+		WriteToFile(RemoveDuplicate(configcontent), proto + "_iran.txt")
+	}
+	// WriteToFile(configs, "iran.txt")
 }
 
 func WriteToFile(fileContent string, filePath string) {
@@ -257,3 +267,32 @@ func WriteToFile(fileContent string, filePath string) {
 // 	}
 // 	return lines
 // }
+
+func RemoveDuplicate(config string) string {
+	lines := strings.Split(config, "\n")
+
+	// Use a map to keep track of unique lines
+	uniqueLines := make(map[string]bool)
+
+	// Loop over lines and add unique lines to map
+	for _, line := range lines {
+		if len(line) > 0 {
+			uniqueLines[line] = true
+		}
+	}
+
+	// Join unique lines into a string
+	uniqueString := strings.Join(getKeys(uniqueLines), "\n")
+
+	return uniqueString
+}
+
+func getKeys(m map[string]bool) []string {
+	keys := make([]string, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
+}

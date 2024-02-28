@@ -40,7 +40,7 @@ var mutex sync.Mutex
 // }
 
 // App
-func GetConfigs(defaultChannelsConfig []string) string {
+func GetConfigs(defaultChannelsConfig []string) map[string]string {
 	// defaultChannelsConfig := createLinkSlice(linksString, defaultChannelsConfig)
 
 	configs := map[string]string{
@@ -175,12 +175,23 @@ func GetConfigs(defaultChannelsConfig []string) string {
 
 	wg.Wait()
 
-	var myString string
-	// _ --> proto
-	for _, configcontent := range configs {
-		myString += RemoveDuplicate(configcontent)
-	}
-	return myString
+	// var myString string
+	// // _ --> proto
+	// for _, configcontent := range configs {
+	// 	myString += RemoveDuplicate(configcontent)
+	// }
+	// return myString
+
+	// for proto, configcontent := range configs {
+	// 	// 		reverse mode :
+	// 	// 		lines := strings.Split(configcontent, "\n")
+	// 	// 		reversed := reverse(lines)
+	// 	// 		WriteToFile(strings.Join(reversed, "\n"), proto+"_iran.txt")
+	// 	// 		simple mode :
+	// 	WriteToFile(RemoveDuplicate(configcontent), proto+"_iran.txt")
+	// }
+	
+	return configs
 
 }
 
@@ -221,33 +232,4 @@ func GetMessages(length int, doc *goquery.Document, number string, channel strin
 	}
 
 	return newDoc
-}
-
-func RemoveDuplicate(config string) string {
-	lines := strings.Split(config, "\n")
-
-	// Use a map to keep track of unique lines
-	uniqueLines := make(map[string]bool)
-
-	// Loop over lines and add unique lines to map
-	for _, line := range lines {
-		if len(line) > 0 {
-			uniqueLines[line] = true
-		}
-	}
-
-	// Join unique lines into a string
-	uniqueString := strings.Join(getKeys(uniqueLines), "\n")
-
-	return uniqueString
-}
-
-func getKeys(m map[string]bool) []string {
-	keys := make([]string, len(m))
-	i := 0
-	for k := range m {
-		keys[i] = k
-		i++
-	}
-	return keys
 }
