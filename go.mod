@@ -1,6 +1,6 @@
-module mymodule
+module github.com/mrvcoder/V2rayCollector
 
-go 1.19
+go 1.22.0
 
 require github.com/PuerkitoBio/goquery v1.9.0
 
