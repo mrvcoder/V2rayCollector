@@ -142,5 +142,5 @@ row|link
 119|https://t.me/forwardv2ray|
 120|https://t.me/Lockey_vpn|
 
-If you know other telegram channels which they put V2ray Configs feel free to pull them :)
+If you know other telegram channels which they put V2ray Configs feel free to add pull request :)
 
