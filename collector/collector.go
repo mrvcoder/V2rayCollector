@@ -4,10 +4,10 @@ package collector
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -39,7 +39,7 @@ var mutex sync.Mutex
 // 	return linkSlice
 // }
 
-// App
+// GetConfigs App
 func GetConfigs(defaultChannelsConfig []string) map[string]string {
 	// defaultChannelsConfig := createLinkSlice(linksString, defaultChannelsConfig)
 
@@ -50,7 +50,7 @@ func GetConfigs(defaultChannelsConfig []string) map[string]string {
 		"vless":  "",
 		"mixed":  "",
 	}
-	myregex := map[string]string{
+	regex := map[string]string{
 		"ss":     `(.{3})ss:\/\/`,
 		"vmess":  `vmess:\/\/`,
 		"trojan": `trojan:\/\/`,
@@ -63,9 +63,9 @@ func GetConfigs(defaultChannelsConfig []string) map[string]string {
 		wg.Add(1)
 		go func(channel string) {
 			defer wg.Done()
-			all_messages := false
+			allMessages := false
 			if strings.Contains(channel, "{all_messages}") {
-				all_messages = true
+				allMessages = true
 				channel = strings.Split(channel, "{all_messages}")[0]
 			}
 
@@ -78,9 +78,18 @@ func GetConfigs(defaultChannelsConfig []string) map[string]string {
 			if err1 != nil {
 				log.Fatal(err1)
 			}
-			defer resp.Body.Close()
+			defer func(Body io.ReadCloser) {
+				err := Body.Close()
+				if err != nil {
+					log.Fatal(err)
+				}
+			}(resp.Body)
 
 			doc, err := goquery.NewDocumentFromReader(resp.Body)
+
+			// ساختن یک کانال برای ارتباط بین گوروتین و مین گوروتین
+			resultChan := make(chan *goquery.Document)
+
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -91,19 +100,26 @@ func GetConfigs(defaultChannelsConfig []string) map[string]string {
 				number := strings.Split(link, "/")[1]
 				fmt.Println(number)
 
-				doc = GetMessages(100, doc, number, channel)
+				// فراخوانی GetMessages به صورت ناهمزمان
+				go GetMessages(100, doc, number, channel, resultChan)
+
+				// دریافت نتیجه از کانال
+				newDoc := <-resultChan
+				// استفاده از newDoc برای کارهای بعدی
+				doc = newDoc
+				//doc = GetMessages(100, doc, number, channel)
 			}
 
-			if all_messages {
+			if allMessages {
 				mutex.Lock()
 				fmt.Println(doc.Find(".js-widget_message_wrap").Length())
 				doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
 					// For each item found, get the band and title
-					message_text := s.Text()
-					lines := strings.Split(message_text, "\n")
+					messageText := s.Text()
+					lines := strings.Split(messageText, "\n")
 					for a := 0; a < len(lines); a++ {
-						for _, regex_value := range myregex {
-							re := regexp.MustCompile(regex_value)
+						for _, regexValue := range regex {
+							re := regexp.MustCompile(regexValue)
 							lines[a] = re.ReplaceAllStringFunc(lines[a], func(match string) string {
 								return "\n" + match
 							})
@@ -121,13 +137,13 @@ func GetConfigs(defaultChannelsConfig []string) map[string]string {
 				mutex.Lock()
 				doc.Find("code,pre").Each(func(j int, s *goquery.Selection) {
 					// For each item found, get the band and title
-					message_text := s.Text()
-					lines := strings.Split(message_text, "\n")
+					messageText := s.Text()
+					lines := strings.Split(messageText, "\n")
 					for a := 0; a < len(lines); a++ {
-						for proto_regex, regex_value := range myregex {
-							re := regexp.MustCompile(regex_value)
+						for protoRegex, regexValue := range regex {
+							re := regexp.MustCompile(regexValue)
 							lines[a] = re.ReplaceAllStringFunc(lines[a], func(match string) string {
-								if proto_regex == "ss" {
+								if protoRegex == "ss" {
 									if match[:3] == "vme" {
 										return "\n" + match
 									} else if match[:3] == "vle" {
@@ -141,23 +157,23 @@ func GetConfigs(defaultChannelsConfig []string) map[string]string {
 							})
 
 							if len(strings.Split(lines[a], "\n")) > 1 {
-								myconfigs := strings.Split(lines[a], "\n")
-								for i := 0; i < len(myconfigs); i++ {
-									if myconfigs[i] != "" {
-										re := regexp.MustCompile(regex_value)
-										myconfigs[i] = strings.ReplaceAll(myconfigs[i], " ", "")
-										match := re.FindStringSubmatch(myconfigs[i])
+								myConfigs := strings.Split(lines[a], "\n")
+								for i := 0; i < len(myConfigs); i++ {
+									if myConfigs[i] != "" {
+										re := regexp.MustCompile(regexValue)
+										myConfigs[i] = strings.ReplaceAll(myConfigs[i], " ", "")
+										match := re.FindStringSubmatch(myConfigs[i])
 										if len(match) >= 1 {
-											if proto_regex == "ss" {
+											if protoRegex == "ss" {
 												if match[1][:3] == "vme" {
-													configs["vmess"] += "\n" + myconfigs[i] + "\n"
+													configs["vmess"] += "\n" + myConfigs[i] + "\n"
 												} else if match[1][:3] == "vle" {
-													configs["vless"] += "\n" + myconfigs[i] + "\n"
+													configs["vless"] += "\n" + myConfigs[i] + "\n"
 												} else {
-													configs["ss"] += "\n" + myconfigs[i][3:] + "\n"
+													configs["ss"] += "\n" + myConfigs[i][3:] + "\n"
 												}
 											} else {
-												configs[proto_regex] += "\n" + myconfigs[i] + "\n"
+												configs[protoRegex] += "\n" + myConfigs[i] + "\n"
 											}
 										}
 
@@ -190,46 +206,5 @@ func GetConfigs(defaultChannelsConfig []string) map[string]string {
 	// 	// 		simple mode :
 	// 	WriteToFile(RemoveDuplicate(configcontent), proto+"_iran.txt")
 	// }
-	
 	return configs
-
-}
-
-func load_more(link string) *goquery.Document {
-	req, _ := http.NewRequest("GET", link, nil)
-	fmt.Println(link)
-	resp, _ := client.Do(req)
-	doc, _ := goquery.NewDocumentFromReader(resp.Body)
-	return doc
-}
-
-func GetMessages(length int, doc *goquery.Document, number string, channel string) *goquery.Document {
-	x := load_more(channel + "?before=" + number)
-
-	html2, _ := x.Html()
-	reader2 := strings.NewReader(html2)
-	doc2, _ := goquery.NewDocumentFromReader(reader2)
-
-	// _, exist := doc.Find(".js-messages_more").Attr("href")
-	doc.Find("body").AppendSelection(doc2.Find("body").Children())
-
-	newDoc := goquery.NewDocumentFromNode(doc.Selection.Nodes[0])
-	// fmt.Println(newDoc.Find(".js-messages_more").Attr("href"))
-	messages := newDoc.Find(".js-widget_message_wrap").Length()
-
-	fmt.Println(messages)
-	if messages > length {
-		return newDoc
-	} else {
-		num, _ := strconv.Atoi(number)
-		n := num - 21
-		if n > 0 {
-			ns := strconv.Itoa(n)
-			GetMessages(length, newDoc, ns, channel)
-		} else {
-			return newDoc
-		}
-	}
-
-	return newDoc
 }

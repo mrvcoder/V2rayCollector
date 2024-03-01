@@ -216,13 +216,13 @@ var defaultChannelsConfig = []string{
 func main() {
 	configs := collector.GetConfigs(defaultChannelsConfig)
 
-	for proto, configcontent := range configs {
+	for proto, configContent := range configs {
 		// 		reverse mode :
-		// 		lines := strings.Split(configcontent, "\n")
+		// 		lines := strings.Split(configContent, "\n")
 		// 		reversed := reverse(lines)
 		// 		WriteToFile(strings.Join(reversed, "\n"), proto+"_iran.txt")
 		// 		simple mode :
-		WriteToFile(RemoveDuplicate(configcontent), proto + "_iran.txt")
+		WriteToFile(RemoveDuplicate(configContent), proto+"_configs.txt")
 	}
 	// WriteToFile(configs, "iran.txt")
 }
