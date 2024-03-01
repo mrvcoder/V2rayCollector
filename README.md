@@ -25,6 +25,7 @@ Mixed (configs of this are different)|https://raw.githubusercontent.com/youfound
  - [ ] Sort the stored configs (from latest to oldest)
  - [ ] Optimze config exctraction (only get config and remove the dsc and other things)
  - [ ] Read Channels from README.md (it should support {all_messages} flag)
+ - [ ] Update README (add usage of configs in different os and move channels list to channels.csv)
 
 # Telegram channels list that used as source 😉 
 
