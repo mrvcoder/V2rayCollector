@@ -17,12 +17,21 @@ Trojan |https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/troja
 Vless|https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vless_iran.txt|
 Mixed (configs of this are different)|https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/mixed_iran.txt|
 
+
+## Todos
+ - [ ] Adding comments to functions
+ - [ ] Getting messges modular so it can be easy to edit
+ - [ ] Add feature to only stores configs from present until x days ago
+ - [ ] Sort the stored configs (from latest to oldest)
+ - [ ] Optimze config exctraction (only get config and remove the dsc and other things)
+ - [ ] Read Channels from README.md (it should support {all_messages} flag)
+
 # Telegram channels list that used as source 😉 
 
 row|link
 -------------------------------|-----------------------------|
-1          |https://t.me/v2rayng_fa2      |
-2          |https://t.me/v2rayng_org  |
+1|https://t.me/v2rayng_fa2|
+2|https://t.me/v2rayng_org|
 3|https://t.me/V2rayNGvpni|
 4|https://t.me/custom_14|
 5|https://t.me/v2rayNG_VPNN|
