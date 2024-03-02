@@ -220,6 +220,9 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 
 func EditVmessPs(config string, fileName string) string {
 	// Decode the base64 string
+	if config == "" {
+		return ""
+	}
 	slice := strings.Split(config, "vmess://")
 	if len(slice) > 0 {
 		decodedBytes, err := base64.StdEncoding.DecodeString(slice[1])
