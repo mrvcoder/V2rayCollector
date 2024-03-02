@@ -127,7 +127,6 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 			lines := strings.Split(line, "\n")
 			for _, data := range lines {
 				extracted_configs := strings.Split(ExtractConfig(data, []string{}), "\n")
-
 				for _, extractedConfig := range extracted_configs {
 					extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
 					if extractedConfig != "" {
@@ -170,7 +169,6 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 						matches := re.FindStringSubmatch(extractedConfig)
 
 						if len(matches) > 0 {
-							extractedConfig = strings.TrimSpace(extractedConfig)
 							extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
 							if extractedConfig != "" {
 								if proto_regex == "vmess" {
@@ -229,8 +227,8 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 			ExtractConfig(Txt, Tempconfigs)
 		}
 	}
-
-	return strings.Join(Tempconfigs, "\n")
+	d := strings.Join(Tempconfigs, "\n")
+	return d
 }
 
 func EditVmessPs(config string, fileName string) string {
