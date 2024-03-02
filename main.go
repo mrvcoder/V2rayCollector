@@ -71,9 +71,7 @@ func main() {
 		fmt.Println(" ")
 		fmt.Println("---------------------------------------")
 		gologger.Info().Msg("Crawling " + channel.URL)
-		fmt.Println(" ")
 		CrawlForV2ray(doc, channel.URL, channel.AllMessagesFlag)
-		fmt.Println("")
 		gologger.Info().Msg("Crawled " + channel.URL + " ! ")
 		fmt.Println("---------------------------------------")
 		fmt.Println(" ")
@@ -90,7 +88,7 @@ func main() {
 			lines_arr = reverse(lines_arr)
 			lines = strings.Join(lines_arr, "\n")
 		}
-		WriteToFile(lines, proto+"_iran.txt")
+		WriteToFile(strings.TrimSpace(lines), proto+"_iran.txt")
 
 	}
 
