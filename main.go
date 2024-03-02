@@ -1,309 +1,157 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/jszwec/csvutil"
+	"github.com/projectdiscovery/gologger"
+	"github.com/projectdiscovery/gologger/levels"
 )
 
-var client = &http.Client{}
-
-func main() {
-
-	channels := []string{
-		"https://t.me/s/v2rayng_org",
-		"https://t.me/s/v2rayngvpn",
-		"https://t.me/s/flyv2ray",
-		"https://t.me/s/v2ray_outlineir",
-		"https://t.me/s/v2_vmess",
-		"https://t.me/s/FreeVlessVpn",
-		"https://t.me/s/freeland8",
-		"https://t.me/s/vmess_vless_v2rayng",
-		"https://t.me/s/PrivateVPNs",
-		"https://t.me/s/vmessiran",
-		"https://t.me/s/Outline_Vpn",
-		"https://t.me/s/vmessq",
-		"https://t.me/s/WeePeeN",
-		"https://t.me/s/V2rayNG3",
-		"https://t.me/s/ShadowsocksM",
-		"https://t.me/s/shadowsocksshop",
-		"https://t.me/s/v2rayan",
-		"https://t.me/s/ShadowSocks_s",
-		"https://t.me/s/VmessProtocol",
-		"https://t.me/s/napsternetv_config",
-		"https://t.me/s/Easy_Free_VPN",
-		"https://t.me/s/V2Ray_FreedomIran",
-		"https://t.me/s/V2RAY_VMESS_free",
-		"https://t.me/s/v2ray_for_free",
-		"https://t.me/s/V2rayN_Free",
-		"https://t.me/s/free4allVPN",
-		"https://t.me/s/vpn_ocean",
-		"https://t.me/s/configV2rayForFree",
-		"https://t.me/s/FreeV2rays{all_messages}",
-		"https://t.me/s/DigiV2ray",
-		"https://t.me/s/v2rayNG_VPN",
-		"https://t.me/s/freev2rayssr",
-		"https://t.me/s/v2rayn_server",
-		"https://t.me/s/Shadowlinkserverr",
-		"https://t.me/s/iranvpnet",
-		"https://t.me/s/vmess_iran",
-		"https://t.me/s/mahsaamoon1",
-		"https://t.me/s/V2RAY_NEW",
-		"https://t.me/s/v2RayChannel",
-		"https://t.me/s/configV2rayNG{all_messages}",
-		"https://t.me/s/config_v2ray",
-		"https://t.me/s/vpn_proxy_custom",
-		"https://t.me/s/vpnmasi{all_messages}",
-		"https://t.me/s/v2ray_custom",
-		"https://t.me/s/VPNCUSTOMIZE",
-		"https://t.me/s/HTTPCustomLand",
-		"https://t.me/s/vpn_proxy_custom",
-		"https://t.me/s/ViPVpn_v2ray",
-		"https://t.me/s/FreeNet1500",
-		"https://t.me/s/v2ray_ar{all_messages}",
-		"https://t.me/s/beta_v2ray",
-		"https://t.me/s/vip_vpn_2022",
-		"https://t.me/s/FOX_VPN66",
-		"https://t.me/s/VorTexIRN",
-		"https://t.me/s/YtTe3la",
-		"https://t.me/s/V2RayOxygen",
-		"https://t.me/s/Network_442",
-		"https://t.me/s/VPN_443",
-		"https://t.me/s/v2rayng_v",
-		"https://t.me/s/ultrasurf_12",
-		"https://t.me/s/iSeqaro{all_messages}",
-		"https://t.me/s/frev2rayng",
-		"https://t.me/s/frev2ray",
-		"https://t.me/s/FreakConfig",
-		"https://t.me/s/Awlix_ir",
-		"https://t.me/s/v2rayngvpn",
-		"https://t.me/s/God_CONFIG{all_messages}",
-		"https://t.me/s/Configforvpn01",
-		"https://t.me/s/polproxy",
-		"https://t.me/s/v2rayvpnchannel",
-		"https://t.me/s/proxy_mtm",
-		"https://t.me/s/vpn_ioss{all_messages}",
-		"https://t.me/s/V2Ray_FreedomIran",
-		"https://t.me/s/v2rayfree1",
-		"https://t.me/s/free_v2rayyy",
-		"https://t.me/s/nx_v2ray",
-		"https://t.me/s/nufilter",
-		"https://t.me/s/Free_HTTPCustom",
-		"https://t.me/s/customv2ray",
-		"https://t.me/s/vpn_Nv1",
-		"https://t.me/s/AliAlma_GSM{all_messages}",
-		"https://t.me/s/reality_daily{all_messages}",
-		"https://t.me/s/shopingv2ray",
-		"https://t.me/s/v2rayng_vpnrog",
-		"https://t.me/s/ServerNett",
-		"https://t.me/s/MT_TEAM_IRAN",
-		"https://t.me/s/V2ray_Team",
-		"https://t.me/s/VpnProsecc",
-		"https://t.me/s/ConfigsHUB",
-		"https://t.me/s/melov2ray",
-		"https://t.me/s/V2pedia",
-		"https://t.me/s/FalconPolV2rayNG",
-		"https://t.me/s/ShadowProxy66",
-		"https://t.me/s/VPNCUSTOMIZE",
-		"https://t.me/s/prrofile_purple",
-		"https://t.me/s/MsV2ray",
-		"https://t.me/s/VlessConfig",
-		"https://t.me/s/vless_vmess",
-		"https://t.me/s/MehradLearn",
-		"https://t.me/s/kingofilter",
-		"https://t.me/s/IRN_VPN",
-		"https://t.me/s/V2raysFree",
-		"https://t.me/s/SvnTeam",
-		"https://t.me/s/flyv2ray",
-		"https://t.me/s/free1_vpn",
-		"https://t.me/s/UnlimitedDev",
-		"https://t.me/s/vpn_xw",
-		"https://t.me/s/V2RayTz",
-		"https://t.me/s/ipV2Ray",
-		"https://t.me/s/OutlineVpnOfficial",
-		"https://t.me/s/mehrosaboran",
-		"https://t.me/s/mftizi",
-		"https://t.me/s/https_config_injector",
-		"https://t.me/s/Hope_Net",
-		"https://t.me/s/V2rayng_Fast",
-		"https://t.me/s/DailyV2RY",
-		"https://t.me/s/shh_proxy",
-		"https://t.me/s/forwardv2ray",
-		"https://t.me/s/Lockey_vpn",
-	}
-
-	configs := map[string]string{
+var (
+	client       = &http.Client{}
+	max_messages = 100
+	ConfigsNames = "@Vip_Security join us"
+	configs      = map[string]string{
 		"ss":     "",
 		"vmess":  "",
 		"trojan": "",
 		"vless":  "",
 		"mixed":  "",
 	}
+	myregex = map[string]string{
+		"ss":     `(?m)^ss:\/\/.+(%3A%40|#)`,
+		"vmess":  `(?m)^vmess:\/\/.+(%3A%40|#)`,
+		"trojan": `(?m)^trojan:\/\/.+(%3A%40|#)`,
+		"vless":  `(?m)^vless:\/\/.+(%3A%40|#)`,
+	}
+	sort = flag.Bool("sort", false, "sort from latest to oldest (default : false)")
+)
 
-	myregex := map[string]string{
-		"ss":     `(.{3})ss:\/\/`,
-		"vmess":  `vmess:\/\/`,
-		"trojan": `trojan:\/\/`,
-		"vless":  `vless:\/\/`,
+type ChannelsType struct {
+	URL             string `csv:"URL"`
+	AllMessagesFlag bool   `csv:"AllMessagesFlag"`
+}
+
+func main() {
+
+	gologger.DefaultLogger.SetMaxLevel(levels.LevelDebug)
+	flag.Parse()
+
+	file_data, _ := readFileContent("./channels.csv")
+	var channels []ChannelsType
+	if err := csvutil.Unmarshal([]byte(file_data), &channels); err != nil {
+		gologger.Fatal().Msg("error: " + err.Error())
 	}
 
-	//protocol := ""
-	for i := 0; i < len(channels); i++ {
-		all_messages := false
-		if strings.Contains(channels[i], "{all_messages}") {
-			all_messages = true
-			channels[i] = strings.Split(channels[i], "{all_messages}")[0]
-		}
+	// loop through the channels lists
+	for _, channel := range channels {
 
-		req, err := http.NewRequest("GET", channels[i], nil)
-		if err != nil {
-			log.Fatalf("Error When requesting to: %s Error : %s", channels[i], err) //fixed
-		}
+		// change url
+		channel.URL = ChangeUrlToTelegramWebUrl(channel.URL)
 
-		resp, err1 := client.Do(req)
-		if err1 != nil {
-			log.Fatal(err1)
-		}
-		defer resp.Body.Close()
-
+		// get channel messgages
+		resp := HttpRequest(channel.URL)
 		doc, err := goquery.NewDocumentFromReader(resp.Body)
+		resp.Body.Close()
+
 		if err != nil {
-			log.Fatal(err)
+			gologger.Error().Msg(err.Error())
 		}
 
-		messages := doc.Find(".tgme_widget_message_wrap").Length()
-		link, exist := doc.Find(".tgme_widget_message_wrap .js-widget_message").Last().Attr("data-post")
-		if messages < 100 && exist {
-			number := strings.Split(link, "/")[1]
-			fmt.Println(number)
-
-			doc = GetMessages(100, doc, number, channels[i])
-		}
-
-		if all_messages {
-			fmt.Println(doc.Find(".js-widget_message_wrap").Length())
-			doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
-				// For each item found, get the band and title
-				message_text := s.Text()
-				lines := strings.Split(message_text, "\n")
-				for a := 0; a < len(lines); a++ {
-					for _, regex_value := range myregex {
-						re := regexp.MustCompile(regex_value)
-						lines[a] = re.ReplaceAllStringFunc(lines[a], func(match string) string {
-							return "\n" + match
-						})
-					}
-					for proto, _ := range configs {
-						if strings.Contains(lines[a], proto) {
-							configs["mixed"] += "\n" + lines[a] + "\n"
-						}
-					}
-				}
-
-			})
-		} else {
-			doc.Find("code,pre").Each(func(j int, s *goquery.Selection) {
-				// For each item found, get the band and title
-				message_text := s.Text()
-				lines := strings.Split(message_text, "\n")
-				for a := 0; a < len(lines); a++ {
-					for proto_regex, regex_value := range myregex {
-						re := regexp.MustCompile(regex_value)
-						lines[a] = re.ReplaceAllStringFunc(lines[a], func(match string) string {
-							if proto_regex == "ss" {
-								if match[:3] == "vme" {
-									return "\n" + match
-								} else if match[:3] == "vle" {
-									return "\n" + match
-								} else {
-									return "\n" + match
-								}
-							} else {
-								return "\n" + match
-							}
-						})
-
-						if len(strings.Split(lines[a], "\n")) > 1 {
-							myconfigs := strings.Split(lines[a], "\n")
-							for i := 0; i < len(myconfigs); i++ {
-								if myconfigs[i] != "" {
-									re := regexp.MustCompile(regex_value)
-									myconfigs[i] = strings.ReplaceAll(myconfigs[i], " ", "")
-									match := re.FindStringSubmatch(myconfigs[i])
-									if len(match) >= 1 {
-										if proto_regex == "ss" {
-											if match[1][:3] == "vme" {
-												configs["vmess"] += "\n" + myconfigs[i] + "\n"
-											} else if match[1][:3] == "vle" {
-												configs["vless"] += "\n" + myconfigs[i] + "\n"
-											} else {
-												configs["ss"] += "\n" + myconfigs[i][3:] + "\n"
-											}
-										} else {
-											configs[proto_regex] += "\n" + myconfigs[i] + "\n"
-										}
-									}
-
-								}
-
-							}
-						}
-					}
-				}
-			})
-		}
-
+		fmt.Println("---------------------------------------")
+		gologger.Info().Msg("Crawling " + channel.URL)
+		fmt.Println("")
+		CrawlForV2ray(doc, channel.URL, channel.AllMessagesFlag)
+		fmt.Println("")
+		gologger.Info().Msg("Crawled " + channel.URL + " ! ")
+		fmt.Println("---------------------------------------")
 	}
 
+	gologger.Info().Msg("Creating output files !")
 	for proto, configcontent := range configs {
-		// 		reverse mode :
-		// 		lines := strings.Split(configcontent, "\n")
-		// 		reversed := reverse(lines)
-		// 		WriteToFile(strings.Join(reversed, "\n"), proto+"_iran.txt")
-		// 		simple mode :
-		WriteToFile(RemoveDuplicate(configcontent), proto+"_iran.txt")
+
+		lines := RemoveDuplicate(configcontent)
+
+		if *sort {
+			// 		reverse mode :
+			lines_arr := strings.Split(configcontent, "\n")
+			lines_arr = reverse(lines_arr)
+			lines = strings.Join(lines_arr, "\n")
+		}
+
+		WriteToFile(lines, proto+"_iran.txt")
+
 	}
+
+	gologger.Info().Msg("All Done :D")
 
 }
 
-func WriteToFile(fileContent string, filePath string) {
+func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFlag bool) {
+	// here we are updating our DOM to include the x messages
+	// in our DOM and then extract the messages from that DOM
+	messages := doc.Find(".tgme_widget_message_wrap").Length()
+	link, exist := doc.Find(".tgme_widget_message_wrap .js-widget_message").Last().Attr("data-post")
 
-	// Check if the file exists
-	if _, err := os.Stat(filePath); err == nil {
-		// If the file exists, clear its content
-		err = ioutil.WriteFile(filePath, []byte{}, 0644)
-		if err != nil {
-			fmt.Println("Error clearing file:", err)
-			return
-		}
-	} else if os.IsNotExist(err) {
-		// If the file does not exist, create it
-		_, err = os.Create(filePath)
-		if err != nil {
-			fmt.Println("Error creating file:", err)
-			return
-		}
+	if messages < max_messages && exist {
+		number := strings.Split(link, "/")[1]
+		doc = GetMessages(max_messages, doc, number, channel_link)
+	}
+
+	// extract v2ray based on message type and store configs at [configs] map
+	if HasAllMessagesFlag {
+		// get all messages and check for v2ray configs
+		fmt.Println(doc.Find(".js-widget_message_wrap").Length())
+		doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
+			// For each item found, get the band and title
+			message_text := s.Text()
+			lines := strings.Split(message_text, "\n")
+			for a := 0; a < len(lines); a++ {
+				for _, regex_value := range myregex {
+					re := regexp.MustCompile(regex_value)
+					matches := re.FindStringSubmatch(lines[a])
+					if len(matches) > 0 {
+						// add extracted values to configs[]
+						lines[a] = "\n" + matches[0] + ConfigsNames
+						lines[a] = strings.TrimSpace(lines[a])
+						for proto, _ := range configs {
+							if strings.Contains(lines[a], proto) {
+								configs["mixed"] += "\n" + lines[a] + "\n"
+							}
+						}
+					}
+				}
+
+			}
+
+		})
 	} else {
-		// If there was some other error, print it and return
-		fmt.Println("Error checking file:", err)
-		return
-	}
+		// get only messages that are inside code or pre tag and check for v2ray configs
+		doc.Find("code,pre").Each(func(j int, s *goquery.Selection) {
+			message_text, _ := s.Html()
+			lines := strings.Split(message_text, "<br/>")
+			for a := 0; a < len(lines); a++ {
+				for proto_regex, regex_value := range myregex {
 
-	// Write the new content to the file
-	err := ioutil.WriteFile(filePath, []byte(fileContent), 0644)
-	if err != nil {
-		fmt.Println("Error writing file:", err)
-		return
+					re := regexp.MustCompile(regex_value)
+					matches := re.FindStringSubmatch(lines[a])
+					if len(matches) > 0 {
+						lines[a] = "\n" + matches[0] + ConfigsNames
+						// add extracted values to configs[]
+						lines[a] = strings.TrimSpace(lines[a])
+						configs[proto_regex] += "\n" + lines[a] + "\n"
+					}
+				}
+			}
+		})
 	}
-
-	fmt.Println("File written successfully")
 }
 
 func load_more(link string) *goquery.Document {
@@ -321,14 +169,11 @@ func GetMessages(length int, doc *goquery.Document, number string, channel strin
 	reader2 := strings.NewReader(html2)
 	doc2, _ := goquery.NewDocumentFromReader(reader2)
 
-	// _, exist := doc.Find(".js-messages_more").Attr("href")
 	doc.Find("body").AppendSelection(doc2.Find("body").Children())
 
 	newDoc := goquery.NewDocumentFromNode(doc.Selection.Nodes[0])
-	// fmt.Println(newDoc.Find(".js-messages_more").Attr("href"))
 	messages := newDoc.Find(".js-widget_message_wrap").Length()
 
-	fmt.Println(messages)
 	if messages > length {
 		return newDoc
 	} else {
@@ -343,41 +188,4 @@ func GetMessages(length int, doc *goquery.Document, number string, channel strin
 	}
 
 	return newDoc
-}
-
-func reverse(lines []string) []string {
-	for i := 0; i < len(lines)/2; i++ {
-		j := len(lines) - i - 1
-		lines[i], lines[j] = lines[j], lines[i]
-	}
-	return lines
-}
-
-func RemoveDuplicate(config string) string {
-	lines := strings.Split(config, "\n")
-
-	// Use a map to keep track of unique lines
-	uniqueLines := make(map[string]bool)
-
-	// Loop over lines and add unique lines to map
-	for _, line := range lines {
-		if len(line) > 0 {
-			uniqueLines[line] = true
-		}
-	}
-
-	// Join unique lines into a string
-	uniqueString := strings.Join(getKeys(uniqueLines), "\n")
-
-	return uniqueString
-}
-
-func getKeys(m map[string]bool) []string {
-	keys := make([]string, len(m))
-	i := 0
-	for k := range m {
-		keys[i] = k
-		i++
-	}
-	return keys
 }

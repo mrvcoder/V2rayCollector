@@ -20,7 +20,8 @@ jobs:
 
     - name: Build and run Golang file
       run: |
-        go run ./main.go
+          go build -o myapp
+          ./myapp -sort
     
     - name: Commit Changes
       run: |
