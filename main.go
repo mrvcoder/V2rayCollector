@@ -130,10 +130,12 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 			for _, data := range lines {
 				extracted_configs := strings.Split(ExtractConfig(data, []string{}), "\n")
 				for _, extractedConfig := range extracted_configs {
-					ConfigFileIds["mixed"] += 1
 					extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
-					extractedConfig = extractedConfig + "-" + strconv.Itoa(int(ConfigFileIds["mixed"]))
-					configs["mixed"] += extractedConfig + "\n"
+					if extractedConfig != "" {
+						ConfigFileIds["mixed"] += 1
+						extractedConfig = extractedConfig + "-" + strconv.Itoa(int(ConfigFileIds["mixed"]))
+						configs["mixed"] += extractedConfig + "\n"
+					}
 				}
 			}
 		})
@@ -154,9 +156,11 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 						matches := re.FindStringSubmatch(extractedConfig)
 						if len(matches) > 0 {
 							line = strings.TrimSpace(line)
-							ConfigFileIds[proto_regex] += 1
 							line = strings.ReplaceAll(line, " ", "")
-							configs[proto_regex] += line + "-" + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
+							if line != "" {
+								ConfigFileIds[proto_regex] += 1
+								configs[proto_regex] += line + "-" + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
+							}
 						}
 					}
 				}
