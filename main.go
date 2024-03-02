@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -26,10 +28,10 @@ var (
 		"mixed":  "",
 	}
 	myregex = map[string]string{
-		"ss":     `(?m)^ss:\/\/.+(%3A%40|#)`,
-		"vmess":  `(?m)^vmess:\/\/.+(%3A%40|#)`,
-		"trojan": `(?m)^trojan:\/\/.+(%3A%40|#)`,
-		"vless":  `(?m)^vless:\/\/.+(%3A%40|#)`,
+		"ss":     `(?m)...ss:\/\/.+?(%3A%40|#)`,
+		"vmess":  `(?m)vmess:\/\/.+`,
+		"trojan": `(?m)trojan:\/\/.+?(%3A%40|#)`,
+		"vless":  `(?m)vless:\/\/.+?(%3A%40|#)`,
 	}
 	sort = flag.Bool("sort", false, "sort from latest to oldest (default : false)")
 )
@@ -76,7 +78,6 @@ func main() {
 
 	gologger.Info().Msg("Creating output files !")
 	for proto, configcontent := range configs {
-
 		lines := RemoveDuplicate(configcontent)
 
 		if *sort {
@@ -85,7 +86,6 @@ func main() {
 			lines_arr = reverse(lines_arr)
 			lines = strings.Join(lines_arr, "\n")
 		}
-
 		WriteToFile(lines, proto+"_iran.txt")
 
 	}
@@ -112,46 +112,83 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 		doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
 			// For each item found, get the band and title
 			message_text, _ := s.Html()
-			lines := strings.Split(message_text, "<br/>")
-			for a := 0; a < len(lines); a++ {
-				for _, regex_value := range myregex {
-					re := regexp.MustCompile(regex_value)
-					matches := re.FindStringSubmatch(lines[a])
-					if len(matches) > 0 {
-						// add extracted values to configs[]
-						lines[a] = "\n" + matches[0] + ConfigsNames
-						lines[a] = strings.TrimSpace(lines[a])
-						for proto, _ := range configs {
-							if strings.Contains(lines[a], proto) {
-								configs["mixed"] += "\n" + lines[a] + "\n"
-							}
-						}
-					}
-				}
-
+			str := strings.Replace(message_text, "<br/>", "\n", -1)
+			doc, _ := goquery.NewDocumentFromReader(strings.NewReader(str))
+			message_text = doc.Text()
+			line := strings.TrimSpace(message_text)
+			lines := strings.Split(line, "\n")
+			for _, data := range lines {
+				extracted_configs := ExtractConfig(data, []string{})
+				configs["mixed"] += "\n" + extracted_configs + "\n"
 			}
-
 		})
 	} else {
 		// get only messages that are inside code or pre tag and check for v2ray configs
 		doc.Find("code,pre").Each(func(j int, s *goquery.Selection) {
 			message_text, _ := s.Html()
-			lines := strings.Split(message_text, "<br/>")
-			for a := 0; a < len(lines); a++ {
+			str := strings.ReplaceAll(message_text, "<br/>", "\n")
+			doc, _ := goquery.NewDocumentFromReader(strings.NewReader(str))
+			message_text = doc.Text()
+			line := strings.TrimSpace(message_text)
+			lines := strings.Split(line, "\n")
+			for _, data := range lines {
+				extracted_configs := strings.Split(ExtractConfig(data, []string{}), "\n")
 				for proto_regex, regex_value := range myregex {
-
-					re := regexp.MustCompile(regex_value)
-					matches := re.FindStringSubmatch(lines[a])
-					if len(matches) > 0 {
-						lines[a] = "\n" + matches[0] + ConfigsNames
-						// add extracted values to configs[]
-						lines[a] = strings.TrimSpace(lines[a])
-						configs[proto_regex] += "\n" + lines[a] + "\n"
+					for _, extractedConfig := range extracted_configs {
+						re := regexp.MustCompile(regex_value)
+						matches := re.FindStringSubmatch(extractedConfig)
+						if len(matches) > 0 {
+							line = strings.TrimSpace(line)
+							configs[proto_regex] += "\n" + line + "\n"
+						}
 					}
 				}
 			}
+
 		})
 	}
+}
+
+func ExtractConfig(Txt string, Tempconfigs []string) string {
+	for proto_regex, regex_value := range myregex {
+		re := regexp.MustCompile(regex_value)
+		matches := re.FindStringSubmatch(Txt)
+		extracted_config := ""
+		if len(matches) > 0 {
+			// add extracted values to configs[]
+			if proto_regex == "ss" {
+				Prefix := strings.Split(matches[0], "ss://")[0]
+				if Prefix == "" || Prefix != "vle" || Prefix != "vme" {
+					extracted_config = "\n" + matches[0] + ConfigsNames
+				}
+			}
+			if proto_regex == "vmess" {
+				// Decode the base64 string
+				decodedBytes, err := base64.StdEncoding.DecodeString(strings.Split(matches[0], "vmess://")[1])
+				if err != nil {
+					continue
+				}
+				// Unmarshal JSON into a map
+				var data map[string]interface{}
+				json.Unmarshal(decodedBytes, &data)
+				data["ps"] = ConfigsNames
+
+				// marshal JSON into a map
+				jsonData, _ := json.Marshal(data)
+				// Encode JSON to base64
+				base64Encoded := base64.StdEncoding.EncodeToString(jsonData)
+
+				extracted_config = "vmess://" + base64Encoded
+			} else {
+				extracted_config = "\n" + matches[0] + ConfigsNames
+			}
+			Tempconfigs = append(Tempconfigs, extracted_config)
+			Txt = strings.ReplaceAll(Txt, matches[0], "")
+			ExtractConfig(Txt, Tempconfigs)
+		}
+	}
+
+	return strings.Join(Tempconfigs, "\n")
 }
 
 func load_more(link string) *goquery.Document {
