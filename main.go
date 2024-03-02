@@ -95,7 +95,8 @@ func main() {
 			lines_arr = reverse(lines_arr)
 			lines = strings.Join(lines_arr, "\n")
 		}
-		WriteToFile(strings.TrimSpace(lines), proto+"_iran.txt")
+		lines = strings.TrimSpace(lines)
+		WriteToFile(lines, proto+"_iran.txt")
 
 	}
 
@@ -127,8 +128,13 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 			line := strings.TrimSpace(message_text)
 			lines := strings.Split(line, "\n")
 			for _, data := range lines {
-				extracted_configs := ExtractConfig(data, []string{}, "mixed")
-				configs["mixed"] += "\n" + extracted_configs + "\n"
+				extracted_configs := strings.Split(ExtractConfig(data, []string{}), "\n")
+				for _, extractedConfig := range extracted_configs {
+					ConfigFileIds["mixed"] += 1
+					extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
+					extractedConfig = extractedConfig + "-" + strconv.Itoa(int(ConfigFileIds["mixed"]))
+					configs["mixed"] += extractedConfig + "\n"
+				}
 			}
 		})
 	} else {
@@ -141,7 +147,7 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 			line := strings.TrimSpace(message_text)
 			lines := strings.Split(line, "\n")
 			for _, data := range lines {
-				extracted_configs := strings.Split(ExtractConfig(data, []string{}, ""), "\n")
+				extracted_configs := strings.Split(ExtractConfig(data, []string{}), "\n")
 				for proto_regex, regex_value := range myregex {
 					for _, extractedConfig := range extracted_configs {
 						re := regexp.MustCompile(regex_value)
@@ -149,7 +155,8 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 						if len(matches) > 0 {
 							line = strings.TrimSpace(line)
 							ConfigFileIds[proto_regex] += 1
-							configs[proto_regex] += "\n" + line + "-" + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
+							line = strings.ReplaceAll(line, " ", "")
+							configs[proto_regex] += line + "-" + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
 						}
 					}
 				}
@@ -159,7 +166,7 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 	}
 }
 
-func ExtractConfig(Txt string, Tempconfigs []string, fileName string) string {
+func ExtractConfig(Txt string, Tempconfigs []string) string {
 
 	// filename can be "" or mixed
 
@@ -168,17 +175,11 @@ func ExtractConfig(Txt string, Tempconfigs []string, fileName string) string {
 		matches := re.FindStringSubmatch(Txt)
 		extracted_config := ""
 		if len(matches) > 0 {
-			if fileName == "mix" {
-				ConfigFileIds[fileName] += 1
-			}
+
 			if proto_regex == "ss" {
 				Prefix := strings.Split(matches[0], "ss://")[0]
 				if Prefix == "" || Prefix != "vle" || Prefix != "vme" {
-					if fileName == "mix" {
-						extracted_config = "\n" + matches[0] + ConfigsNames + "-" + strconv.Itoa(int(ConfigFileIds[fileName]))
-					} else {
-						extracted_config = "\n" + matches[0] + ConfigsNames
-					}
+					extracted_config = "\n" + matches[0] + ConfigsNames
 				}
 			}
 			if proto_regex == "vmess" {
@@ -191,11 +192,7 @@ func ExtractConfig(Txt string, Tempconfigs []string, fileName string) string {
 					if err != nil {
 						continue
 					} else {
-						if fileName == "mix" {
-							data["ps"] = ConfigsNames + "-" + strconv.Itoa(int(ConfigFileIds[fileName]))
-						} else {
-							data["ps"] = ConfigsNames
-						}
+						data["ps"] = ConfigsNames
 						// marshal JSON into a map
 						jsonData, _ := json.Marshal(data)
 						// Encode JSON to base64
@@ -205,15 +202,11 @@ func ExtractConfig(Txt string, Tempconfigs []string, fileName string) string {
 					}
 				}
 			} else {
-				if fileName == "mix" {
-					extracted_config = "\n" + matches[0] + ConfigsNames + "-" + strconv.Itoa(int(ConfigFileIds[fileName]))
-				} else {
-					extracted_config = "\n" + matches[0] + ConfigsNames
-				}
+				extracted_config = "\n" + matches[0] + ConfigsNames
 			}
 			Tempconfigs = append(Tempconfigs, extracted_config)
 			Txt = strings.ReplaceAll(Txt, matches[0], "")
-			ExtractConfig(Txt, Tempconfigs, fileName)
+			ExtractConfig(Txt, Tempconfigs)
 		}
 	}
 
