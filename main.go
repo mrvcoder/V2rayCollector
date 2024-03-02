@@ -67,6 +67,8 @@ func main() {
 			gologger.Error().Msg(err.Error())
 		}
 
+		fmt.Println("")
+		fmt.Println("")
 		fmt.Println("---------------------------------------")
 		gologger.Info().Msg("Crawling " + channel.URL)
 		fmt.Println("")
@@ -74,6 +76,8 @@ func main() {
 		fmt.Println("")
 		gologger.Info().Msg("Crawled " + channel.URL + " ! ")
 		fmt.Println("---------------------------------------")
+		fmt.Println("")
+		fmt.Println("")
 	}
 
 	gologger.Info().Msg("Creating output files !")
