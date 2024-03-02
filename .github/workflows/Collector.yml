@@ -15,7 +15,7 @@ jobs:
 
     - uses: actions/setup-go@v4
       with:
-        go-version: '>=1.23'
+        go-version: '>=go1.21.3'
     - run: go version
 
     - name: Build and run Golang file
