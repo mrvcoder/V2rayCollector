@@ -27,6 +27,13 @@ var (
 		"vless":  "",
 		"mixed":  "",
 	}
+	ConfigFileIds = map[string]int32{
+		"ss":     0,
+		"vmess":  0,
+		"trojan": 0,
+		"vless":  0,
+		"mixed":  0,
+	}
 	myregex = map[string]string{
 		"ss":     `(?m)...ss:\/\/.+?(%3A%40|#)`,
 		"vmess":  `(?m)vmess:\/\/.+`,
@@ -151,16 +158,17 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 	}
 }
 
-func ExtractConfig(Txt string, Tempconfigs []string) string {
+func ExtractConfig(Txt string, Tempconfigs []string, fileName string) string {
 	for proto_regex, regex_value := range myregex {
 		re := regexp.MustCompile(regex_value)
 		matches := re.FindStringSubmatch(Txt)
 		extracted_config := ""
 		if len(matches) > 0 {
+			ConfigFileIds[fileName] += 1
 			if proto_regex == "ss" {
 				Prefix := strings.Split(matches[0], "ss://")[0]
 				if Prefix == "" || Prefix != "vle" || Prefix != "vme" {
-					extracted_config = "\n" + matches[0] + ConfigsNames
+					extracted_config = "\n" + matches[0] + ConfigsNames + "-" + strconv.Itoa(int(ConfigFileIds[fileName]))
 				}
 			}
 			if proto_regex == "vmess" {
@@ -173,7 +181,7 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 					if err != nil {
 						continue
 					} else {
-						data["ps"] = ConfigsNames
+						data["ps"] = ConfigsNames + "-" + strconv.Itoa(int(ConfigFileIds[fileName]))
 						// marshal JSON into a map
 						jsonData, _ := json.Marshal(data)
 						// Encode JSON to base64
@@ -183,11 +191,11 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 					}
 				}
 			} else {
-				extracted_config = "\n" + matches[0] + ConfigsNames
+				extracted_config = "\n" + matches[0] + ConfigsNames + "-" + strconv.Itoa(int(ConfigFileIds[fileName]))
 			}
 			Tempconfigs = append(Tempconfigs, extracted_config)
 			Txt = strings.ReplaceAll(Txt, matches[0], "")
-			ExtractConfig(Txt, Tempconfigs)
+			ExtractConfig(Txt, Tempconfigs, fileName)
 		}
 	}
 
