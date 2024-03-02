@@ -220,20 +220,23 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 
 func EditVmessPs(config string, fileName string) string {
 	// Decode the base64 string
-	decodedBytes, err := base64.StdEncoding.DecodeString(strings.Split(config, "vmess://")[1])
-	if err == nil {
-		// Unmarshal JSON into a map
-		var data map[string]interface{}
-		err = json.Unmarshal(decodedBytes, &data)
+	slice := strings.Split(config, "vmess://")
+	if len(slice) > 0 {
+		decodedBytes, err := base64.StdEncoding.DecodeString(slice[1])
 		if err == nil {
-			ConfigFileIds[fileName] += 1
-			data["ps"] = ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[fileName])) + "\n"
-			// marshal JSON into a map
-			jsonData, _ := json.Marshal(data)
-			// Encode JSON to base64
-			base64Encoded := base64.StdEncoding.EncodeToString(jsonData)
+			// Unmarshal JSON into a map
+			var data map[string]interface{}
+			err = json.Unmarshal(decodedBytes, &data)
+			if err == nil {
+				ConfigFileIds[fileName] += 1
+				data["ps"] = ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[fileName])) + "\n"
+				// marshal JSON into a map
+				jsonData, _ := json.Marshal(data)
+				// Encode JSON to base64
+				base64Encoded := base64.StdEncoding.EncodeToString(jsonData)
 
-			return "vmess://" + base64Encoded
+				return "vmess://" + base64Encoded
+			}
 		}
 	}
 
