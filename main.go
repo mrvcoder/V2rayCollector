@@ -137,10 +137,12 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 						matches := re.FindStringSubmatch(extractedConfig)
 						if len(matches) > 0 {
 							extractedConfig = EditVmessPs(extractedConfig, "mixed")
-							configs["mixed"] += extractedConfig + "\n"
+							if line != "" {
+								configs["mixed"] += extractedConfig + "\n"
+							}
 						} else {
 							ConfigFileIds["mixed"] += 1
-							extractedConfig = extractedConfig + "-" + strconv.Itoa(int(ConfigFileIds["mixed"]))
+							extractedConfig = extractedConfig + " - " + strconv.Itoa(int(ConfigFileIds["mixed"]))
 							configs["mixed"] += extractedConfig + "\n"
 						}
 
@@ -169,10 +171,12 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 							if line != "" {
 								if proto_regex == "vmess" {
 									line = EditVmessPs(line, proto_regex)
-									configs[proto_regex] += line + "\n"
+									if line != "" {
+										configs[proto_regex] += line + "\n"
+									}
 								} else {
 									ConfigFileIds[proto_regex] += 1
-									configs[proto_regex] += line + "-" + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
+									configs[proto_regex] += line + " - " + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
 								}
 
 							}
@@ -200,6 +204,8 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 				if Prefix == "" || Prefix != "vle" || Prefix != "vme" {
 					extracted_config = "\n" + matches[0] + ConfigsNames
 				}
+			} else if proto_regex == "vmess" {
+				extracted_config = "\n" + matches[0]
 			} else {
 				extracted_config = "\n" + matches[0] + ConfigsNames
 			}
@@ -213,7 +219,6 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 }
 
 func EditVmessPs(config string, fileName string) string {
-
 	// Decode the base64 string
 	decodedBytes, err := base64.StdEncoding.DecodeString(strings.Split(config, "vmess://")[1])
 	if err == nil {
@@ -222,7 +227,7 @@ func EditVmessPs(config string, fileName string) string {
 		err = json.Unmarshal(decodedBytes, &data)
 		if err == nil {
 			ConfigFileIds[fileName] += 1
-			data["ps"] = ConfigsNames + strconv.Itoa(int(ConfigFileIds[fileName])) + "\n"
+			data["ps"] = ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[fileName])) + "\n"
 			// marshal JSON into a map
 			jsonData, _ := json.Marshal(data)
 			// Encode JSON to base64
