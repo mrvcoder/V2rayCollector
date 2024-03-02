@@ -128,13 +128,15 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 			lines := strings.Split(line, "\n")
 			for _, data := range lines {
 				extracted_configs := strings.Split(ExtractConfig(data, []string{}), "\n")
+
 				for _, extractedConfig := range extracted_configs {
 					extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
 					if extractedConfig != "" {
 
 						// check if it is vmess or not
-						re := regexp.MustCompile("vmess")
+						re := regexp.MustCompile(myregex["vmess"])
 						matches := re.FindStringSubmatch(extractedConfig)
+
 						if len(matches) > 0 {
 							extractedConfig = EditVmessPs(extractedConfig, "mixed")
 							if line != "" {
@@ -162,26 +164,38 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 			for _, data := range lines {
 				extracted_configs := strings.Split(ExtractConfig(data, []string{}), "\n")
 				for proto_regex, regex_value := range myregex {
+
 					for _, extractedConfig := range extracted_configs {
+
 						re := regexp.MustCompile(regex_value)
 						matches := re.FindStringSubmatch(extractedConfig)
+
 						if len(matches) > 0 {
-							line = strings.TrimSpace(line)
-							line = strings.ReplaceAll(line, " ", "")
-							if line != "" {
+							extractedConfig = strings.TrimSpace(extractedConfig)
+							extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
+							if extractedConfig != "" {
 								if proto_regex == "vmess" {
-									line = EditVmessPs(line, proto_regex)
-									if line != "" {
-										configs[proto_regex] += line + "\n"
+									extractedConfig = EditVmessPs(extractedConfig, proto_regex)
+									if extractedConfig != "" {
+										configs[proto_regex] += extractedConfig + "\n"
+									}
+								} else if proto_regex == "ss" {
+									Prefix := strings.Split(matches[0], "ss://")[0]
+									if Prefix == "" || Prefix != "vle" && Prefix != "vme" {
+										ConfigFileIds[proto_regex] += 1
+										configs["ss"] += extractedConfig + " - " + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
 									}
 								} else {
+
 									ConfigFileIds[proto_regex] += 1
-									configs[proto_regex] += line + " - " + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
+									configs[proto_regex] += extractedConfig + " - " + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
 								}
 
 							}
 						}
+
 					}
+
 				}
 			}
 
@@ -201,7 +215,7 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 
 			if proto_regex == "ss" {
 				Prefix := strings.Split(matches[0], "ss://")[0]
-				if Prefix == "" || Prefix != "vle" || Prefix != "vme" {
+				if Prefix == "" || Prefix != "vle" && Prefix != "vme" {
 					extracted_config = "\n" + matches[0] + ConfigsNames
 				}
 			} else if proto_regex == "vmess" {
@@ -209,6 +223,7 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 			} else {
 				extracted_config = "\n" + matches[0] + ConfigsNames
 			}
+
 			Tempconfigs = append(Tempconfigs, extracted_config)
 			Txt = strings.ReplaceAll(Txt, matches[0], "")
 			ExtractConfig(Txt, Tempconfigs)
