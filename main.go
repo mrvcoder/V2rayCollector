@@ -84,7 +84,6 @@ func main() {
 		fmt.Println(" ")
 		fmt.Println(" ")
 	}
-
 	gologger.Info().Msg("Creating output files !")
 	for proto, configcontent := range configs {
 		lines := RemoveDuplicate(configcontent)
@@ -181,9 +180,9 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 									}
 								} else if proto_regex == "ss" {
 									Prefix := strings.Split(matches[0], "ss://")[0]
-									if Prefix == "" || Prefix != "vle" && Prefix != "vme" {
+									if Prefix == "" {
 										ConfigFileIds[proto_regex] += 1
-										configs["ss"] += extractedConfig + " - " + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
+										configs[proto_regex] += extractedConfig + " - " + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
 									}
 								} else {
 
@@ -206,17 +205,18 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 func ExtractConfig(Txt string, Tempconfigs []string) string {
 
 	// filename can be "" or mixed
-
 	for proto_regex, regex_value := range myregex {
 		re := regexp.MustCompile(regex_value)
 		matches := re.FindStringSubmatch(Txt)
 		extracted_config := ""
 		if len(matches) > 0 {
-
 			if proto_regex == "ss" {
 				Prefix := strings.Split(matches[0], "ss://")[0]
-				if Prefix == "" || Prefix != "vle" && Prefix != "vme" {
+				if Prefix == "" {
 					extracted_config = "\n" + matches[0] + ConfigsNames
+				} else if Prefix != "vle" || Prefix != "vme" {
+					d := strings.Split(matches[0], "ss://")
+					extracted_config = "\n" + "ss://" + d[1] + ConfigsNames
 				}
 			} else if proto_regex == "vmess" {
 				extracted_config = "\n" + matches[0]
