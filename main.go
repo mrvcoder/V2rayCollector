@@ -111,8 +111,8 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 		fmt.Println(doc.Find(".js-widget_message_wrap").Length())
 		doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
 			// For each item found, get the band and title
-			message_text := s.Text()
-			lines := strings.Split(message_text, "\n")
+			message_text, _ := s.Html()
+			lines := strings.Split(message_text, "<br/>")
 			for a := 0; a < len(lines); a++ {
 				for _, regex_value := range myregex {
 					re := regexp.MustCompile(regex_value)
