@@ -155,7 +155,6 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 		matches := re.FindStringSubmatch(Txt)
 		extracted_config := ""
 		if len(matches) > 0 {
-			// add extracted values to configs[]
 			if proto_regex == "ss" {
 				Prefix := strings.Split(matches[0], "ss://")[0]
 				if Prefix == "" || Prefix != "vle" || Prefix != "vme" {
