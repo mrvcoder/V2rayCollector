@@ -67,17 +67,17 @@ func main() {
 			gologger.Error().Msg(err.Error())
 		}
 
-		fmt.Println("")
-		fmt.Println("")
+		fmt.Println(" ")
+		fmt.Println(" ")
 		fmt.Println("---------------------------------------")
 		gologger.Info().Msg("Crawling " + channel.URL)
-		fmt.Println("")
+		fmt.Println(" ")
 		CrawlForV2ray(doc, channel.URL, channel.AllMessagesFlag)
 		fmt.Println("")
 		gologger.Info().Msg("Crawled " + channel.URL + " ! ")
 		fmt.Println("---------------------------------------")
-		fmt.Println("")
-		fmt.Println("")
+		fmt.Println(" ")
+		fmt.Println(" ")
 	}
 
 	gologger.Info().Msg("Creating output files !")
@@ -168,20 +168,21 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 			if proto_regex == "vmess" {
 				// Decode the base64 string
 				decodedBytes, err := base64.StdEncoding.DecodeString(strings.Split(matches[0], "vmess://")[1])
-				if err != nil {
-					continue
-				} else {
+				if err == nil {
 					// Unmarshal JSON into a map
 					var data map[string]interface{}
-					json.Unmarshal(decodedBytes, &data)
-					data["ps"] = ConfigsNames
+					err = json.Unmarshal(decodedBytes, &data)
+					if err != nil {
+						continue
+					} else {
+						data["ps"] = ConfigsNames
+						// marshal JSON into a map
+						jsonData, _ := json.Marshal(data)
+						// Encode JSON to base64
+						base64Encoded := base64.StdEncoding.EncodeToString(jsonData)
 
-					// marshal JSON into a map
-					jsonData, _ := json.Marshal(data)
-					// Encode JSON to base64
-					base64Encoded := base64.StdEncoding.EncodeToString(jsonData)
-
-					extracted_config = "vmess://" + base64Encoded
+						extracted_config = "vmess://" + base64Encoded
+					}
 				}
 			} else {
 				extracted_config = "\n" + matches[0] + ConfigsNames
