@@ -179,7 +179,7 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 								if proto_regex == "vmess" {
 									extractedConfig = EditVmessPs(extractedConfig, proto_regex)
 									if extractedConfig != "" {
-										configs[proto_regex] += extractedConfig + ConfigsNames + "\n"
+										configs[proto_regex] += extractedConfig + "\n"
 									}
 								} else if proto_regex == "ss" {
 									Prefix := strings.Split(matches[0], "ss://")[0]
