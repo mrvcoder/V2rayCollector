@@ -27,6 +27,7 @@ Mixed (configs of this are different)|https://raw.githubusercontent.com/youfound
  - [x] Read Channels from channels.csv (it should support {all_messages} flag)
  - [ ] Update README (add usage of configs in different os and move channels list to channels.csv)
  - [ ] Add support for v2ray configs that posted in json data
+ - [ ] Fix issue at removing duplicate lines ( duplicates won't create by script , some channels put duplicate configs in their chats :D )
 
 # Telegram channels list that used as source 😉 
 click [here](https://github.com/mrvcoder/V2rayCollector/blob/main/channels.csv) to see the list
