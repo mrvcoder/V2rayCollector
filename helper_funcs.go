@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -40,7 +39,7 @@ func ChangeUrlToTelegramWebUrl(input string) string {
 
 func readFileContent(filePath string) (string, error) {
 	// Read the entire file content
-	content, err := ioutil.ReadFile(filePath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -91,7 +90,7 @@ func WriteToFile(fileContent string, filePath string) {
 	// Check if the file exists
 	if _, err := os.Stat(filePath); err == nil {
 		// If the file exists, clear its content
-		err = ioutil.WriteFile(filePath, []byte{}, 0644)
+		err = os.WriteFile(filePath, []byte{}, 0644)
 		if err != nil {
 			fmt.Println("Error clearing file:", err)
 			return
@@ -110,7 +109,7 @@ func WriteToFile(fileContent string, filePath string) {
 	}
 
 	// Write the new content to the file
-	err := ioutil.WriteFile(filePath, []byte(fileContent), 0644)
+	err := os.WriteFile(filePath, []byte(fileContent), 0644)
 	if err != nil {
 		fmt.Println("Error writing file:", err)
 		return
