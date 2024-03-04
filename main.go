@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/mrvcoder/V2rayCollector/collector"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -53,9 +54,9 @@ func main() {
 	gologger.DefaultLogger.SetMaxLevel(levels.LevelDebug)
 	flag.Parse()
 
-	fileData, _ := readFileContent("./channels.csv")
+	fileData, err := collector.ReadFileContent("channels.csv")
 	var channels []ChannelsType
-	if err := csvutil.Unmarshal([]byte(fileData), &channels); err != nil {
+	if err = csvutil.Unmarshal([]byte(fileData), &channels); err != nil {
 		gologger.Fatal().Msg("error: " + err.Error())
 	}
 
@@ -63,7 +64,7 @@ func main() {
 	for _, channel := range channels {
 
 		// change url
-		channel.URL = ChangeUrlToTelegramWebUrl(channel.URL)
+		channel.URL = collector.ChangeUrlToTelegramWebUrl(channel.URL)
 
 		// get channel messages
 		resp := HttpRequest(channel.URL)
@@ -87,21 +88,21 @@ func main() {
 	gologger.Info().Msg("Creating output files !")
 
 	for proto, configcontent := range configs {
-		lines := RemoveDuplicate(configcontent)
+		lines := collector.RemoveDuplicate(configcontent)
 		if *sort {
 			// 		from latest to oldest mode :
-			lines_arr := strings.Split(configcontent, "\n")
-			lines_arr = reverse(lines_arr)
-			lines = strings.Join(lines_arr, "\n")
+			linesArr := strings.Split(configcontent, "\n")
+			linesArr = collector.Reverse(linesArr)
+			lines = strings.Join(linesArr, "\n")
 		} else {
 			// 		from oldest to latest mode :
-			lines_arr := strings.Split(configcontent, "\n")
-			lines_arr = reverse(lines_arr)
-			lines_arr = reverse(lines_arr)
-			lines = strings.Join(lines_arr, "\n")
+			linesArr := strings.Split(configcontent, "\n")
+			linesArr = collector.Reverse(linesArr)
+			linesArr = collector.Reverse(linesArr)
+			lines = strings.Join(linesArr, "\n")
 		}
 		lines = strings.TrimSpace(lines)
-		WriteToFile(lines, proto+"_iran.txt")
+		collector.WriteToFile(lines, proto+"_iran.txt")
 
 	}
 
@@ -109,7 +110,7 @@ func main() {
 
 }
 
-func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFlag bool) {
+func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag bool) {
 	// here we are updating our DOM to include the x messages
 	// in our DOM and then extract the messages from that DOM
 	messages := doc.Find(".tgme_widget_message_wrap").Length()
@@ -117,7 +118,7 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 
 	if messages < maxMessages && exist {
 		number := strings.Split(link, "/")[1]
-		doc = GetMessages(maxMessages, doc, number, channel_link)
+		doc = GetMessages(maxMessages, doc, number, channelLink)
 	}
 
 	// extract v2ray based on message type and store configs at [configs] map
@@ -217,7 +218,7 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 				Prefix := strings.Split(matches[0], "ss://")[0]
 				if Prefix == "" {
 					extractedConfig = "\n" + matches[0]
-				} else if Prefix != "vle" || Prefix != "vme" && Prefix != "" {
+				} else if Prefix != "vle" { //  (Prefix != "vme" && Prefix != "") always true!
 					d := strings.Split(matches[0], "ss://")
 					extractedConfig = "\n" + "ss://" + d[1]
 				}
@@ -264,7 +265,7 @@ func EditVmessPs(config string, fileName string) string {
 	return ""
 }
 
-func load_more(link string) *goquery.Document {
+func loadMore(link string) *goquery.Document {
 	req, _ := http.NewRequest("GET", link, nil)
 	fmt.Println(link)
 	resp, _ := client.Do(req)
@@ -272,8 +273,21 @@ func load_more(link string) *goquery.Document {
 	return doc
 }
 
+func HttpRequest(url string) *http.Response {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		gologger.Fatal().Msg(fmt.Sprintf("Error When requesting to: %s Error : %s", url, err))
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		gologger.Fatal().Msg(err.Error())
+	}
+	return resp
+}
+
 func GetMessages(length int, doc *goquery.Document, number string, channel string) *goquery.Document {
-	x := load_more(channel + "?before=" + number)
+	x := loadMore(channel + "?before=" + number)
 
 	html2, _ := x.Html()
 	reader2 := strings.NewReader(html2)
