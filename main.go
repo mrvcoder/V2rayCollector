@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/mrvcoder/V2rayCollector/collector"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -18,7 +19,7 @@ import (
 
 var (
 	client       = &http.Client{}
-	max_messages = 100
+	maxMessages  = 100
 	ConfigsNames = "@Vip_Security join us"
 	configs      = map[string]string{
 		"ss":     "",
@@ -53,9 +54,9 @@ func main() {
 	gologger.DefaultLogger.SetMaxLevel(levels.LevelDebug)
 	flag.Parse()
 
-	file_data, _ := readFileContent("./channels.csv")
+	fileData, err := collector.ReadFileContent("channels.csv")
 	var channels []ChannelsType
-	if err := csvutil.Unmarshal([]byte(file_data), &channels); err != nil {
+	if err = csvutil.Unmarshal([]byte(fileData), &channels); err != nil {
 		gologger.Fatal().Msg("error: " + err.Error())
 	}
 
@@ -63,12 +64,12 @@ func main() {
 	for _, channel := range channels {
 
 		// change url
-		channel.URL = ChangeUrlToTelegramWebUrl(channel.URL)
+		channel.URL = collector.ChangeUrlToTelegramWebUrl(channel.URL)
 
-		// get channel messgages
+		// get channel messages
 		resp := HttpRequest(channel.URL)
 		doc, err := goquery.NewDocumentFromReader(resp.Body)
-		resp.Body.Close()
+		err = resp.Body.Close()
 
 		if err != nil {
 			gologger.Error().Msg(err.Error())
@@ -87,21 +88,21 @@ func main() {
 	gologger.Info().Msg("Creating output files !")
 
 	for proto, configcontent := range configs {
-		lines := RemoveDuplicate(configcontent)
+		lines := collector.RemoveDuplicate(configcontent)
 		if *sort {
 			// 		from latest to oldest mode :
-			lines_arr := strings.Split(configcontent, "\n")
-			lines_arr = reverse(lines_arr)
-			lines = strings.Join(lines_arr, "\n")
+			linesArr := strings.Split(configcontent, "\n")
+			linesArr = collector.Reverse(linesArr)
+			lines = strings.Join(linesArr, "\n")
 		} else {
 			// 		from oldest to latest mode :
-			lines_arr := strings.Split(configcontent, "\n")
-			lines_arr = reverse(lines_arr)
-			lines_arr = reverse(lines_arr)
-			lines = strings.Join(lines_arr, "\n")
+			linesArr := strings.Split(configcontent, "\n")
+			linesArr = collector.Reverse(linesArr)
+			linesArr = collector.Reverse(linesArr)
+			lines = strings.Join(linesArr, "\n")
 		}
 		lines = strings.TrimSpace(lines)
-		WriteToFile(lines, proto+"_iran.txt")
+		collector.WriteToFile(lines, proto+"_iran.txt")
 
 	}
 
@@ -109,15 +110,15 @@ func main() {
 
 }
 
-func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFlag bool) {
+func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag bool) {
 	// here we are updating our DOM to include the x messages
 	// in our DOM and then extract the messages from that DOM
 	messages := doc.Find(".tgme_widget_message_wrap").Length()
 	link, exist := doc.Find(".tgme_widget_message_wrap .js-widget_message").Last().Attr("data-post")
 
-	if messages < max_messages && exist {
+	if messages < maxMessages && exist {
 		number := strings.Split(link, "/")[1]
-		doc = GetMessages(max_messages, doc, number, channel_link)
+		doc = GetMessages(maxMessages, doc, number, channelLink)
 	}
 
 	// extract v2ray based on message type and store configs at [configs] map
@@ -125,15 +126,15 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 		// get all messages and check for v2ray configs
 		doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
 			// For each item found, get the band and title
-			message_text, _ := s.Html()
-			str := strings.Replace(message_text, "<br/>", "\n", -1)
+			messageText, _ := s.Html()
+			str := strings.Replace(messageText, "<br/>", "\n", -1)
 			doc, _ := goquery.NewDocumentFromReader(strings.NewReader(str))
-			message_text = doc.Text()
-			line := strings.TrimSpace(message_text)
+			messageText = doc.Text()
+			line := strings.TrimSpace(messageText)
 			lines := strings.Split(line, "\n")
 			for _, data := range lines {
-				extracted_configs := strings.Split(ExtractConfig(data, []string{}), "\n")
-				for _, extractedConfig := range extracted_configs {
+				extractedConfigs := strings.Split(ExtractConfig(data, []string{}), "\n")
+				for _, extractedConfig := range extractedConfigs {
 					extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
 					if extractedConfig != "" {
 
@@ -159,38 +160,38 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 	} else {
 		// get only messages that are inside code or pre tag and check for v2ray configs
 		doc.Find("code,pre").Each(func(j int, s *goquery.Selection) {
-			message_text, _ := s.Html()
-			str := strings.ReplaceAll(message_text, "<br/>", "\n")
+			messageText, _ := s.Html()
+			str := strings.ReplaceAll(messageText, "<br/>", "\n")
 			doc, _ := goquery.NewDocumentFromReader(strings.NewReader(str))
-			message_text = doc.Text()
-			line := strings.TrimSpace(message_text)
+			messageText = doc.Text()
+			line := strings.TrimSpace(messageText)
 			lines := strings.Split(line, "\n")
 			for _, data := range lines {
-				extracted_configs := strings.Split(ExtractConfig(data, []string{}), "\n")
-				for proto_regex, regex_value := range myregex {
+				extractedConfigs := strings.Split(ExtractConfig(data, []string{}), "\n")
+				for protoRegex, regexValue := range myregex {
 
-					for _, extractedConfig := range extracted_configs {
+					for _, extractedConfig := range extractedConfigs {
 
-						re := regexp.MustCompile(regex_value)
+						re := regexp.MustCompile(regexValue)
 						matches := re.FindStringSubmatch(extractedConfig)
 						if len(matches) > 0 {
 							extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
 							if extractedConfig != "" {
-								if proto_regex == "vmess" {
-									extractedConfig = EditVmessPs(extractedConfig, proto_regex)
+								if protoRegex == "vmess" {
+									extractedConfig = EditVmessPs(extractedConfig, protoRegex)
 									if extractedConfig != "" {
-										configs[proto_regex] += extractedConfig + "\n"
+										configs[protoRegex] += extractedConfig + "\n"
 									}
-								} else if proto_regex == "ss" {
+								} else if protoRegex == "ss" {
 									Prefix := strings.Split(matches[0], "ss://")[0]
 									if Prefix == "" {
-										ConfigFileIds[proto_regex] += 1
-										configs[proto_regex] += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
+										ConfigFileIds[protoRegex] += 1
+										configs[protoRegex] += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[protoRegex])) + "\n"
 									}
 								} else {
 
-									ConfigFileIds[proto_regex] += 1
-									configs[proto_regex] += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[proto_regex])) + "\n"
+									ConfigFileIds[protoRegex] += 1
+									configs[protoRegex] += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[protoRegex])) + "\n"
 								}
 
 							}
@@ -208,26 +209,26 @@ func CrawlForV2ray(doc *goquery.Document, channel_link string, HasAllMessagesFla
 func ExtractConfig(Txt string, Tempconfigs []string) string {
 
 	// filename can be "" or mixed
-	for proto_regex, regex_value := range myregex {
-		re := regexp.MustCompile(regex_value)
+	for protoRegex, regexValue := range myregex {
+		re := regexp.MustCompile(regexValue)
 		matches := re.FindStringSubmatch(Txt)
-		extracted_config := ""
+		extractedConfig := ""
 		if len(matches) > 0 {
-			if proto_regex == "ss" {
+			if protoRegex == "ss" {
 				Prefix := strings.Split(matches[0], "ss://")[0]
 				if Prefix == "" {
-					extracted_config = "\n" + matches[0]
-				} else if Prefix != "vle" || Prefix != "vme" && Prefix != "" {
+					extractedConfig = "\n" + matches[0]
+				} else if Prefix != "vle" { //  (Prefix != "vme" && Prefix != "") always true!
 					d := strings.Split(matches[0], "ss://")
-					extracted_config = "\n" + "ss://" + d[1]
+					extractedConfig = "\n" + "ss://" + d[1]
 				}
-			} else if proto_regex == "vmess" {
-				extracted_config = "\n" + matches[0]
+			} else if protoRegex == "vmess" {
+				extractedConfig = "\n" + matches[0]
 			} else {
-				extracted_config = "\n" + matches[0]
+				extractedConfig = "\n" + matches[0]
 			}
 
-			Tempconfigs = append(Tempconfigs, extracted_config)
+			Tempconfigs = append(Tempconfigs, extractedConfig)
 			Txt = strings.ReplaceAll(Txt, matches[0], "")
 			ExtractConfig(Txt, Tempconfigs)
 		}
@@ -264,7 +265,7 @@ func EditVmessPs(config string, fileName string) string {
 	return ""
 }
 
-func load_more(link string) *goquery.Document {
+func loadMore(link string) *goquery.Document {
 	req, _ := http.NewRequest("GET", link, nil)
 	fmt.Println(link)
 	resp, _ := client.Do(req)
@@ -272,8 +273,21 @@ func load_more(link string) *goquery.Document {
 	return doc
 }
 
+func HttpRequest(url string) *http.Response {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		gologger.Fatal().Msg(fmt.Sprintf("Error When requesting to: %s Error : %s", url, err))
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		gologger.Fatal().Msg(err.Error())
+	}
+	return resp
+}
+
 func GetMessages(length int, doc *goquery.Document, number string, channel string) *goquery.Document {
-	x := load_more(channel + "?before=" + number)
+	x := loadMore(channel + "?before=" + number)
 
 	html2, _ := x.Html()
 	reader2 := strings.NewReader(html2)

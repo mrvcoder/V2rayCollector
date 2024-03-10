@@ -1,27 +1,10 @@
-package main
+package collector
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
-
-	"github.com/projectdiscovery/gologger"
 )
-
-func HttpRequest(url string) *http.Response {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		gologger.Fatal().Msg(fmt.Sprintf("Error When requesting to: %s Error : %s", url, err))
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		gologger.Fatal().Msg(err.Error())
-	}
-	return resp
-}
 
 func ChangeUrlToTelegramWebUrl(input string) string {
 	// Check if the input URL already contains "/s/", if not, add it
@@ -38,9 +21,9 @@ func ChangeUrlToTelegramWebUrl(input string) string {
 	return input
 }
 
-func readFileContent(filePath string) (string, error) {
+func ReadFileContent(filePath string) (string, error) {
 	// Read the entire file content
-	content, err := ioutil.ReadFile(filePath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -49,7 +32,7 @@ func readFileContent(filePath string) (string, error) {
 	return string(content), nil
 }
 
-func reverse(lines []string) []string {
+func Reverse(lines []string) []string {
 	for i := 0; i < len(lines)/2; i++ {
 		j := len(lines) - i - 1
 		lines[i], lines[j] = lines[j], lines[i]
@@ -91,7 +74,7 @@ func WriteToFile(fileContent string, filePath string) {
 	// Check if the file exists
 	if _, err := os.Stat(filePath); err == nil {
 		// If the file exists, clear its content
-		err = ioutil.WriteFile(filePath, []byte{}, 0644)
+		err = os.WriteFile(filePath, []byte{}, 0644)
 		if err != nil {
 			fmt.Println("Error clearing file:", err)
 			return
@@ -110,7 +93,7 @@ func WriteToFile(fileContent string, filePath string) {
 	}
 
 	// Write the new content to the file
-	err := ioutil.WriteFile(filePath, []byte(fileContent), 0644)
+	err := os.WriteFile(filePath, []byte(fileContent), 0644)
 	if err != nil {
 		fmt.Println("Error writing file:", err)
 		return
