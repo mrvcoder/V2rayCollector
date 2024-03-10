@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/mrvcoder/V2rayCollector/collector"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/mrvcoder/V2rayCollector/collector"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/jszwec/csvutil"
@@ -85,18 +86,20 @@ func main() {
 		fmt.Println(" ")
 		fmt.Println(" ")
 	}
+
 	gologger.Info().Msg("Creating output files !")
 
 	for proto, configcontent := range configs {
 		lines := collector.RemoveDuplicate(configcontent)
+		lines = AddConfigNames(lines, proto)
 		if *sort {
 			// 		from latest to oldest mode :
-			linesArr := strings.Split(configcontent, "\n")
+			linesArr := strings.Split(lines, "\n")
 			linesArr = collector.Reverse(linesArr)
 			lines = strings.Join(linesArr, "\n")
 		} else {
 			// 		from oldest to latest mode :
-			linesArr := strings.Split(configcontent, "\n")
+			linesArr := strings.Split(lines, "\n")
 			linesArr = collector.Reverse(linesArr)
 			linesArr = collector.Reverse(linesArr)
 			lines = strings.Join(linesArr, "\n")
@@ -108,6 +111,42 @@ func main() {
 
 	gologger.Info().Msg("All Done :D")
 
+}
+
+func AddConfigNames(config string, configtype string) string {
+	configs := strings.Split(config, "\n")
+	newConfigs := ""
+	for protoRegex, regexValue := range myregex {
+
+		for _, extractedConfig := range configs {
+
+			re := regexp.MustCompile(regexValue)
+			matches := re.FindStringSubmatch(extractedConfig)
+			if len(matches) > 0 {
+				extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
+				if extractedConfig != "" {
+					if protoRegex == "vmess" {
+						extractedConfig = EditVmessPs(extractedConfig, configtype, true)
+						if extractedConfig != "" {
+							newConfigs += extractedConfig + "\n"
+						}
+					} else if protoRegex == "ss" {
+						Prefix := strings.Split(matches[0], "ss://")[0]
+						if Prefix == "" {
+							ConfigFileIds[configtype] += 1
+							newConfigs += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[protoRegex])) + "\n"
+						}
+					} else {
+
+						ConfigFileIds[configtype] += 1
+						newConfigs += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[protoRegex])) + "\n"
+					}
+				}
+			}
+
+		}
+	}
+	return newConfigs
 }
 
 func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag bool) {
@@ -143,13 +182,11 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 						matches := re.FindStringSubmatch(extractedConfig)
 
 						if len(matches) > 0 {
-							extractedConfig = EditVmessPs(extractedConfig, "mixed")
+							extractedConfig = EditVmessPs(extractedConfig, "mixed", false)
 							if line != "" {
 								configs["mixed"] += extractedConfig + "\n"
 							}
 						} else {
-							ConfigFileIds["mixed"] += 1
-							extractedConfig = extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds["mixed"]))
 							configs["mixed"] += extractedConfig + "\n"
 						}
 
@@ -178,20 +215,18 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 							extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
 							if extractedConfig != "" {
 								if protoRegex == "vmess" {
-									extractedConfig = EditVmessPs(extractedConfig, protoRegex)
+									extractedConfig = EditVmessPs(extractedConfig, protoRegex, false)
 									if extractedConfig != "" {
 										configs[protoRegex] += extractedConfig + "\n"
 									}
 								} else if protoRegex == "ss" {
 									Prefix := strings.Split(matches[0], "ss://")[0]
 									if Prefix == "" {
-										ConfigFileIds[protoRegex] += 1
-										configs[protoRegex] += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[protoRegex])) + "\n"
+										configs[protoRegex] += extractedConfig + "\n"
 									}
 								} else {
 
-									ConfigFileIds[protoRegex] += 1
-									configs[protoRegex] += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[protoRegex])) + "\n"
+									configs[protoRegex] += extractedConfig + "\n"
 								}
 
 							}
@@ -237,7 +272,7 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 	return d
 }
 
-func EditVmessPs(config string, fileName string) string {
+func EditVmessPs(config string, fileName string, AddConfigName bool) string {
 	// Decode the base64 string
 	if config == "" {
 		return ""
@@ -250,8 +285,13 @@ func EditVmessPs(config string, fileName string) string {
 			var data map[string]interface{}
 			err = json.Unmarshal(decodedBytes, &data)
 			if err == nil {
-				ConfigFileIds[fileName] += 1
-				data["ps"] = ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[fileName])) + "\n"
+				if AddConfigName {
+					ConfigFileIds[fileName] += 1
+					data["ps"] = ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[fileName])) + "\n"
+				} else {
+					data["ps"] = ""
+				}
+
 				// marshal JSON into a map
 				jsonData, _ := json.Marshal(data)
 				// Encode JSON to base64

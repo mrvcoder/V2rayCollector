@@ -3,6 +3,7 @@ package collector
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -42,31 +43,11 @@ func Reverse(lines []string) []string {
 
 func RemoveDuplicate(config string) string {
 	lines := strings.Split(config, "\n")
-
-	// Use a map to keep track of unique lines
-	uniqueLines := make(map[string]bool)
-
-	// Loop over lines and add unique lines to map
-	for _, line := range lines {
-		if len(line) > 0 {
-			uniqueLines[line] = true
-		}
-	}
-
+	slices.Sort(lines)
+	lines = slices.Compact(lines)
 	// Join unique lines into a string
-	uniqueString := strings.Join(getKeys(uniqueLines), "\n")
-
+	uniqueString := strings.Join(lines, "\n")
 	return uniqueString
-}
-
-func getKeys(m map[string]bool) []string {
-	keys := make([]string, len(m))
-	i := 0
-	for k := range m {
-		keys[i] = k
-		i++
-	}
-	return keys
 }
 
 func WriteToFile(fileContent string, filePath string) {
