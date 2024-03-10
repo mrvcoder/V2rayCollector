@@ -134,12 +134,12 @@ func AddConfigNames(config string, configtype string) string {
 						Prefix := strings.Split(matches[0], "ss://")[0]
 						if Prefix == "" {
 							ConfigFileIds[configtype] += 1
-							newConfigs += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[protoRegex])) + "\n"
+							newConfigs += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[configtype])) + "\n"
 						}
 					} else {
 
 						ConfigFileIds[configtype] += 1
-						newConfigs += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[protoRegex])) + "\n"
+						newConfigs += extractedConfig + ConfigsNames + " - " + strconv.Itoa(int(ConfigFileIds[configtype])) + "\n"
 					}
 				}
 			}
