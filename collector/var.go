@@ -2,11 +2,11 @@ package collector
 
 import (
 	"flag"
-	"net/http"
+	"github.com/valyala/fasthttp"
 )
 
 var (
-	client       = &http.Client{}
+	client       = &fasthttp.Client{}
 	MaxMessages  = 100
 	ConfigsNames = "@Vip_Security join us"
 	Configs      = map[string]string{

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -36,15 +38,28 @@ func main() {
 
 		// change url
 		channel.URL = collector.ChangeUrlToTelegramWebUrl(channel.URL)
+		log.Printf("Making request to: %s\n", channel.URL)
 
 		// get channel messages
 		resp := collector.HttpRequest(channel.URL)
-		doc, err := goquery.NewDocumentFromReader(resp.Body)
-		err = resp.Body.Close()
+		if resp.Body() == nil {
+			gologger.Error().Msg("BodyStream is nil")
+			continue
+		}
+		//defer func(resp *fasthttp.Response) {
+		//	err := resp.CloseBodyStream()
+		//	if err != nil {
+		//		gologger.Error().Msg("BodyStream is nil")
+		//		return
+		//	}
+		//}(resp) // Make sure to close the body stream
 
+		doc, err := goquery.NewDocumentFromReader(bytes.NewReader(resp.Body()))
 		if err != nil {
 			gologger.Error().Msg(err.Error())
+			return
 		}
+		// Use doc here
 
 		fmt.Println(" ")
 		fmt.Println(" ")
