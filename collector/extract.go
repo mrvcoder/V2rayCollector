@@ -114,33 +114,32 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 			for _, data := range lines {
 				extractedConfigs := strings.Split(ExtractConfig(data, []string{}), "\n")
 				for protoRegex, regexValue := range Myregex {
+					re := regexp.MustCompile(regexValue)
 
 					for _, extractedConfig := range extractedConfigs {
+						extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
 
-						re := regexp.MustCompile(regexValue)
+						if extractedConfig == "" {
+							continue
+						}
+
 						matches := re.FindStringSubmatch(extractedConfig)
-						if len(matches) > 0 {
-							extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
-							if extractedConfig != "" {
-								if protoRegex == "vmess" {
-									extractedConfig = EditVmessPs(extractedConfig, protoRegex, false)
-									if extractedConfig != "" {
-										Configs[protoRegex] += extractedConfig + "\n"
-									}
-								} else if protoRegex == "ss" {
-									Prefix := strings.Split(matches[0], "ss://")[0]
-									if Prefix == "" {
-										Configs[protoRegex] += extractedConfig + "\n"
-									}
-								} else {
-									Configs[protoRegex] += extractedConfig + "\n"
-								}
+						if len(matches) == 0 {
+							continue
+						}
 
+						switch protoRegex {
+						case "vmess":
+							extractedConfig = EditVmessPs(extractedConfig, protoRegex, false)
+						case "ss":
+							Prefix := strings.Split(matches[0], "ss://")[0]
+							if Prefix != "" {
+								continue
 							}
 						}
 
+						Configs[protoRegex] += extractedConfig + "\n"
 					}
-
 				}
 			}
 
