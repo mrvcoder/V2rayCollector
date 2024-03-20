@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -23,13 +24,14 @@ type ChannelsType struct {
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU()) // تنظیم به تعداد هسته‌های سیستم
 
 	gologger.DefaultLogger.SetMaxLevel(levels.LevelDebug)
 	flag.Parse()
 
-	fileData, err := collector.ReadFileContent("channels.csv")
+	fileData, _ := collector.ReadFileContent("channels.csv")
 	var channels []ChannelsType
-	if err = csvutil.Unmarshal([]byte(fileData), &channels); err != nil {
+	if err := csvutil.Unmarshal([]byte(fileData), &channels); err != nil {
 		gologger.Fatal().Msg("error: " + err.Error())
 	}
 
