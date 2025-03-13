@@ -19,7 +19,7 @@ jobs:
           delete_tags: true
           delete_workflows: true
           workflows_keep_day: 3
-          
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -38,7 +38,7 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git pull origin main
-          git add ./result/*
+          git add ./results/*
           git checkout main
           git commit -m "✔️ $(date '+%Y-%m-%d %H:%M:%S') Collected"
       - name: Push Changes
