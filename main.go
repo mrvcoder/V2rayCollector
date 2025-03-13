@@ -166,7 +166,11 @@ func main() {
 				lines = strings.Join(linesArr, "\n")
 			}
 			lines = strings.TrimSpace(lines)
-			collector.WriteToFile(lines, "results/"+proto+"_iran.txt")
+			
+			// 确保文件存在并清空内容
+			filePath := "results/" + proto + ".txt"
+			os.Remove(filePath) // 先删除旧文件
+			collector.WriteToFile(lines, filePath) // 创建新文件
 		}(proto, configcontent)
 	}
 
