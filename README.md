@@ -32,7 +32,7 @@ Mixed (configs of this are different)|https://raw.githubusercontent.com/youfound
  - [x] Fix issue at removing duplicate lines ( duplicates won't create by script , some channels put duplicate configs in their chats :D )
 
 # Telegram channels list that used as source 😉 
-click [here](https://github.com/mrvcoder/V2rayCollector/blob/main/channels.csv) to see the list
+click [here](https://github.com/jagger235711/V2rayCollector/blob/main/channels.csv) to see the list
 
 If you know other telegram channels which they put V2ray Configs feel free to add pull request :)
 
