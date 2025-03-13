@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"math/rand"
 	
 	"github.com/jagger235711/V2rayCollector/collector"
 
@@ -168,9 +168,34 @@ func main() {
 			lines = strings.TrimSpace(lines)
 			
 			// 确保文件存在并清空内容
+			// 确保results目录存在
+			if err := os.MkdirAll("results", 0755); err != nil {
+				gologger.Error().Msgf("创建results目录失败: %v", err)
+				return
+			}
+			
 			filePath := "results/" + proto + ".txt"
-			os.Remove(filePath) // 先删除旧文件
-			collector.WriteToFile(lines, filePath) // 创建新文件
+			
+			// 如果文件存在则清空内容，不存在则创建
+			file, err := os.Create(filePath)
+			if err != nil {
+				gologger.Error().Msgf("创建/清空文件 %s 失败: %v", filePath, err)
+				return
+			}
+			file.Close()
+			
+			// 以追加模式打开文件写入内容
+			file, err = os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0644)
+			if err != nil {
+				gologger.Error().Msgf("打开文件 %s 失败: %v", filePath, err)
+				return
+			}
+			defer file.Close()
+			
+			if _, err := file.WriteString(lines); err != nil {
+				gologger.Error().Msgf("写入文件 %s 失败: %v", filePath, err)
+				return
+			}
 		}(proto, configcontent)
 	}
 
@@ -183,12 +208,8 @@ func processChannel(channel ChannelsType) error {
 	gologger.Info().Msgf("开始爬取频道: %s", channel.URL)
 
 	resp, err := HttpRequest(channel.URL)
-	if err != nil || resp == nil {
+	if err != nil {
 		gologger.Error().Msgf("请求失败详情: URL=%s, 错误=%v", channel.URL, err)
-		if resp != nil {
-			gologger.Error().Msgf("响应状态码: %d", resp.StatusCode)
-			gologger.Error().Msgf("响应头: %v", resp.Header)
-		}
 		return fmt.Errorf("请求频道 %s 失败: %v", channel.URL, err)
 	}
 	defer resp.Body.Close()
@@ -202,7 +223,7 @@ func processChannel(channel ChannelsType) error {
 	}
 
 	CrawlForV2ray(doc, channel.URL, channel.AllMessagesFlag)
-
+	
 	gologger.Info().Msgf("成功爬取频道: %s", channel.URL)
 	return nil
 }
