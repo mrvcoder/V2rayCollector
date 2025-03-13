@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 vless://f84898a3-1691-489a-8d6e-0eb0981bef00@rncatlsclyx.codesofun.pp.ua:443?path=%2Frn2&security=tls&encryption=none&type=ws&sni=rnca.majiang.pp.ua#@Vip_Security join us - 349
 vless://ea286109-d20f-415e-849e-4af20ab04b65@15.204.151.80:443?security=tls&encryption=none&headerType=none&type=tcp&sni=147135001195.sec22org.com#@Vip_Security join us - 348
 vless://e657e5fb-c417-4d3f-d84e-a3a8f010f9fa@31.59.111.49:33718?security=reality&encryption=none&pbk=g1f1wLjim5gOVGnI5LGUV0dL4iFXPoiepOPZfSxJe14&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=icloud.cdn-apple.com#@Vip_Security join us - 347
