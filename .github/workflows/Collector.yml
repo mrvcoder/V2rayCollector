@@ -1,7 +1,7 @@
 name: Collector
 on:
   workflow_dispatch:
-  
+
   schedule:
     - cron: "0 */5 * * *"
 
@@ -10,28 +10,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Delete old Releases and Workflows
+        uses: ophub/delete-releases-workflows@main
+        with:
+          gh_token: ${{secrets.GITHUB_TOKEN}}
+          delete_releases: true
+          releases_keep_latest: 3
+          delete_tags: true
+          delete_workflows: true
+          workflows_keep_day: 3
+          
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - uses: actions/setup-go@v4
-      with:
-        go-version: '>=1.21.3'
-    - run: go version
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ">=1.21.3"
+      - run: go version
 
-    - name: Build and run Golang file
-      run: |
+      - name: Build and run Golang file
+        run: |
           go build -o myapp
           ./myapp -sort
-    
-    - name: Commit Changes
-      run: |
-        git config --local user.email "actions@github.com"
-        git config --local user.name "GitHub Actions"
-        git pull origin main
-        git add ./result/*
-        git checkout main
-        git commit -m "✔️ $(date '+%Y-%m-%d %H:%M:%S') Collected"
-    - name: Push Changes
-      uses: ad-m/github-push-action@master
-      with:
-        branch: main
+
+      - name: Commit Changes
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git pull origin main
+          git add ./result/*
+          git checkout main
+          git commit -m "✔️ $(date '+%Y-%m-%d %H:%M:%S') Collected"
+      - name: Push Changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: main
