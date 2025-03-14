@@ -2,34 +2,32 @@ package collector
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
+	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 func ChangeUrlToTelegramWebUrl(input string) string {
-	// Check if the input URL already contains "/s/", if not, add it
 	if !strings.Contains(input, "/s/") {
-		// Find the position of "/t.me/" in the URL
 		index := strings.Index(input, "/t.me/")
 		if index != -1 {
-			// Insert "/s/" after "/t.me/"
 			modifiedURL := input[:index+len("/t.me/")] + "s/" + input[index+len("/t.me/"):]
 			return modifiedURL
 		}
 	}
-	// If "/s/" already exists or "/t.me/" is not found, return the input as is
 	return input
 }
 
 func ReadFileContent(filePath string) (string, error) {
-	// Read the entire file content
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
-
-	// Convert the content to a string and return
 	return string(content), nil
 }
 
@@ -45,40 +43,79 @@ func RemoveDuplicate(config string) string {
 	lines := strings.Split(config, "\n")
 	slices.Sort(lines)
 	lines = slices.Compact(lines)
-	// Join unique lines into a string
-	uniqueString := strings.Join(lines, "\n")
-	return uniqueString
+	return strings.Join(lines, "\n")
 }
 
-func WriteToFile(fileContent string, filePath string) {
+func GetMessages(maxMessages int, doc *goquery.Document, number string, channelLink string) *goquery.Document {
+	loadMoreURL := fmt.Sprintf("%s?before=%s", channelLink, number)
+	newDoc := loadMore(loadMoreURL)
+	if newDoc == nil {
+		return doc
+	}
+	
+	newMessages := newDoc.Find(".tgme_widget_message_wrap")
+	doc.Find("body").AppendSelection(newMessages)
+	
+	if doc.Find(".tgme_widget_message_wrap").Length() < maxMessages {
+		newNumber := newDoc.Find(".tgme_widget_message_wrap .js-widget_message").Last().AttrOr("data-post", "")
+		if newNumber != "" {
+			newNumber = strings.Split(newNumber, "/")[1]
+			return GetMessages(maxMessages, doc, newNumber, channelLink)
+		}
+	}
+	
+	return doc
+}
 
-	// Check if the file exists
-	if _, err := os.Stat(filePath); err == nil {
-		// If the file exists, clear its content
-		err = os.WriteFile(filePath, []byte{}, 0644)
-		if err != nil {
-			fmt.Println("Error clearing file:", err)
-			return
-		}
-	} else if os.IsNotExist(err) {
-		// If the file does not exist, create it
-		_, err = os.Create(filePath)
-		if err != nil {
-			fmt.Println("Error creating file:", err)
-			return
-		}
-	} else {
-		// If there was some other error, print it and return
-		fmt.Println("Error checking file:", err)
-		return
+func WriteToFile(content string, filePath string) error {
+	// 确保目录存在
+	dir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("创建目录失败: %v", err)
 	}
 
-	// Write the new content to the file
-	err := os.WriteFile(filePath, []byte(fileContent), 0644)
-	if err != nil {
-		fmt.Println("Error writing file:", err)
-		return
+	// 使用临时文件实现原子写入
+	tmpFile := filePath + ".tmp"
+	if err := os.WriteFile(tmpFile, []byte(content), 0644); err != nil {
+		return fmt.Errorf("写入临时文件失败: %v", err)
 	}
 
-	fmt.Println("File written successfully")
+	// 重命名实现原子操作
+	if err := os.Rename(tmpFile, filePath); err != nil {
+		// 清理临时文件
+		os.Remove(tmpFile)
+		return fmt.Errorf("重命名文件失败: %v", err)
+	}
+
+	return nil
+}
+
+func loadMore(link string) *goquery.Document {
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	for i := 0; i < 3; i++ {
+		req, err := http.NewRequest("GET", link, nil)
+		if err != nil {
+			continue
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			time.Sleep(2 * time.Second)
+			continue
+		}
+		defer resp.Body.Close()
+
+		doc, err := goquery.NewDocumentFromReader(resp.Body)
+		if err != nil {
+			time.Sleep(2 * time.Second)
+			continue
+		}
+
+		return doc
+	}
+
+	return nil
 }

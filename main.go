@@ -37,6 +37,7 @@ var (
 	maxMessages = 100
 	client      *http.Client
 	cfg         Config
+	fileMutex   sync.Mutex // 添加文件写入互斥锁
 )
 
 func init() {
@@ -70,7 +71,8 @@ func init() {
 			Transport: transport,
 		},
 		MaxMessages:  100,
-		ConfigsNames: "@Vip_Security join us",
+		// ConfigsNames: "@Vip_Security join us",
+		ConfigsNames: "@Jagger235711",
 		Configs: map[string]string{
 			"ss":     "",
 			"vmess":  "",
@@ -125,10 +127,18 @@ func main() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					gologger.Error().Msgf("worker panic: %v", r)
+					results <- fmt.Errorf("worker panic: %v", r)
+				}
+			}()
+			
 			for channel := range ch {
 				if err := processChannel(channel); err != nil {
+					gologger.Error().Msgf("处理频道 %s 失败: %v", channel.URL, err)
 					results <- err
-					return
+					continue
 				}
 			}
 		}()
@@ -167,35 +177,32 @@ func main() {
 			}
 			lines = strings.TrimSpace(lines)
 			
-			// 确保文件存在并清空内容
 			// 确保results目录存在
 			if err := os.MkdirAll("results", 0755); err != nil {
 				gologger.Error().Msgf("创建results目录失败: %v", err)
 				return
 			}
+
+			// 使用互斥锁保护文件写入
+			fileMutex.Lock()
+			defer fileMutex.Unlock()
 			
 			filePath := "results/" + proto + ".txt"
-			
-			// 如果文件存在则清空内容，不存在则创建
-			file, err := os.Create(filePath)
-			if err != nil {
-				gologger.Error().Msgf("创建/清空文件 %s 失败: %v", filePath, err)
-				return
-			}
-			file.Close()
-			
-			// 以追加模式打开文件写入内容
-			file, err = os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0644)
-			if err != nil {
-				gologger.Error().Msgf("打开文件 %s 失败: %v", filePath, err)
-				return
-			}
-			defer file.Close()
-			
-			if _, err := file.WriteString(lines); err != nil {
+			if err := collector.WriteToFile(lines, filePath); err != nil {
 				gologger.Error().Msgf("写入文件 %s 失败: %v", filePath, err)
 				return
 			}
+			
+			// // 写入伊朗专用文件
+			// iranFilePath := "results/" + proto + "_iran.txt"
+			// if err := collector.WriteToFile(lines, iranFilePath); err != nil {
+			// 	gologger.Error().Msgf("写入文件 %s 失败: %v", iranFilePath, err)
+			// 	return
+			// }
+			
+			// gologger.Info().Msgf("成功写入文件: %s 和 %s", filePath, iranFilePath)
+
+			gologger.Info().Msgf("成功写入文件: %s ", filePath)
 		}(proto, configcontent)
 	}
 
@@ -222,7 +229,10 @@ func processChannel(channel ChannelsType) error {
 		return fmt.Errorf("解析频道 %s 失败: %v", channel.URL, err)
 	}
 
-	CrawlForV2ray(doc, channel.URL, channel.AllMessagesFlag)
+	if err := CrawlForV2ray(doc, channel.URL, channel.AllMessagesFlag); err != nil {
+		gologger.Error().Msgf("爬取频道 %s 失败: %v", channel.URL, err)
+		return fmt.Errorf("爬取频道 %s 失败: %v", channel.URL, err)
+	}
 	
 	gologger.Info().Msgf("成功爬取频道: %s", channel.URL)
 	return nil
@@ -264,101 +274,138 @@ func AddConfigNames(config string, configtype string) string {
 	return newConfigs
 }
 
-func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag bool) {
-	// here we are updating our DOM to include the x messages
-	// in our DOM and then extract the messages from that DOM
+func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag bool) error {
+	// 初始化配置计数
+	initialCounts := make(map[string]int)
+	for proto := range cfg.Configs {
+		initialCounts[proto] = len(cfg.Configs[proto])
+	}
+
+	// 更新DOM以包含更多消息
 	messages := doc.Find(".tgme_widget_message_wrap").Length()
 	link, exist := doc.Find(".tgme_widget_message_wrap .js-widget_message").Last().Attr("data-post")
 
 	if messages < maxMessages && exist {
 		number := strings.Split(link, "/")[1]
-		doc = GetMessages(maxMessages, doc, number, channelLink)
+		doc = collector.GetMessages(maxMessages, doc, number, channelLink)
 	}
 
-	// extract v2ray based on message type and store configs at [configs] map
 	if HasAllMessagesFlag {
-		// get all messages and check for v2ray configs
+		// 获取所有消息并检查v2ray配置
 		doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
-			// For each item found, get the band and title
 			messageText, _ := s.Html()
-			str := strings.Replace(messageText, "<br/>", "\n", -1)
+			str := strings.ReplaceAll(messageText, "<br/>", "\n")
 			doc, _ := goquery.NewDocumentFromReader(strings.NewReader(str))
 			messageText = doc.Text()
 			line := strings.TrimSpace(messageText)
+			gologger.Debug().Msgf("原始消息内容: %s", line)
+			
 			lines := strings.Split(line, "\n")
 			for _, data := range lines {
+				data = strings.TrimSpace(data)
+				if data == "" {
+					continue
+				}
+				
 				extractedConfigs := strings.Split(ExtractConfig(data, []string{}), "\n")
+				gologger.Debug().Msgf("提取的配置: %v", extractedConfigs)
+				
 				for _, extractedConfig := range extractedConfigs {
-					extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
-					if extractedConfig != "" {
+					extractedConfig = strings.TrimSpace(extractedConfig)
+					if extractedConfig == "" {
+						continue
+					}
 
-						// check if it is vmess or not
-						re := regexp.MustCompile(cfg.RegexPatterns["vmess"])
-						matches := re.FindStringSubmatch(extractedConfig)
-
-						if len(matches) > 0 {
-							extractedConfig = EditVmessPs(extractedConfig, "mixed", false)
-							if line != "" {
+					// 检查每种协议类型
+					for proto, pattern := range cfg.RegexPatterns {
+						re := regexp.MustCompile(pattern)
+						if re.MatchString(extractedConfig) {
+							gologger.Debug().Msgf("匹配到 %s 协议: %s", proto, extractedConfig)
+							
+							if proto == "vmess" {
+								extractedConfig = EditVmessPs(extractedConfig, proto, false)
+							}
+							
+							if extractedConfig != "" {
+								cfg.Configs[proto] += extractedConfig + "\n"
 								cfg.Configs["mixed"] += extractedConfig + "\n"
 							}
-						} else {
-							cfg.Configs["mixed"] += extractedConfig + "\n"
+							break
 						}
-
 					}
 				}
 			}
 		})
 	} else {
-		// get only messages that are inside code or pre tag and check for v2ray configs
+		// 仅获取code或pre标签内的消息并检查v2ray配置
 		doc.Find("code,pre").Each(func(j int, s *goquery.Selection) {
 			messageText, _ := s.Html()
 			str := strings.ReplaceAll(messageText, "<br/>", "\n")
 			doc, _ := goquery.NewDocumentFromReader(strings.NewReader(str))
 			messageText = doc.Text()
 			line := strings.TrimSpace(messageText)
+			gologger.Debug().Msgf("代码块内容: %s", line)
+			
 			lines := strings.Split(line, "\n")
 			for _, data := range lines {
+				data = strings.TrimSpace(data)
+				if data == "" {
+					continue
+				}
+				
 				extractedConfigs := strings.Split(ExtractConfig(data, []string{}), "\n")
-				for protoRegex, regexValue := range cfg.RegexPatterns {
-
-					for _, extractedConfig := range extractedConfigs {
-
-						re := regexp.MustCompile(regexValue)
-						matches := re.FindStringSubmatch(extractedConfig)
-						if len(matches) > 0 {
-							extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
-							if extractedConfig != "" {
-								if protoRegex == "vmess" {
-									extractedConfig = EditVmessPs(extractedConfig, protoRegex, false)
-									if extractedConfig != "" {
-										cfg.Configs[protoRegex] += extractedConfig + "\n"
-									}
-								} else if protoRegex == "ss" {
-									Prefix := strings.Split(matches[0], "ss://")[0]
-									if Prefix == "" {
-										cfg.Configs[protoRegex] += extractedConfig + "\n"
-									}
-								} else {
-
-									cfg.Configs[protoRegex] += extractedConfig + "\n"
-								}
-
-							}
-						}
-
+				gologger.Debug().Msgf("提取的配置: %v", extractedConfigs)
+				
+				for _, extractedConfig := range extractedConfigs {
+					extractedConfig = strings.TrimSpace(extractedConfig)
+					if extractedConfig == "" {
+						continue
 					}
 
+					// 检查每种协议类型
+					for proto, pattern := range cfg.RegexPatterns {
+						re := regexp.MustCompile(pattern)
+						if re.MatchString(extractedConfig) {
+							gologger.Debug().Msgf("匹配到 %s 协议: %s", proto, extractedConfig)
+							
+							if proto == "vmess" {
+								extractedConfig = EditVmessPs(extractedConfig, proto, false)
+							}
+							
+							if extractedConfig != "" {
+								cfg.Configs[proto] += extractedConfig + "\n"
+								cfg.Configs["mixed"] += extractedConfig + "\n"
+							}
+							break
+						}
+					}
 				}
 			}
-
 		})
 	}
+
+	// 检查是否有新配置被添加
+	finalCounts := make(map[string]int)
+	for proto := range cfg.Configs {
+		finalCounts[proto] = len(cfg.Configs[proto])
+	}
+	
+	hasNewConfig := false
+	for proto := range cfg.Configs {
+		if finalCounts[proto] > initialCounts[proto] {
+			hasNewConfig = true
+			break
+		}
+	}
+	
+	if !hasNewConfig {
+		return fmt.Errorf("没有找到新的配置")
+	}
+	
+	return nil
 }
 
 func ExtractConfig(Txt string, Tempconfigs []string) string {
-
-	// filename can be "" or mixed
 	for protoRegex, regexValue := range cfg.RegexPatterns {
 		re := regexp.MustCompile(regexValue)
 		matches := re.FindStringSubmatch(Txt)
@@ -368,12 +415,10 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 				Prefix := strings.Split(matches[0], "ss://")[0]
 				if Prefix == "" {
 					extractedConfig = "\n" + matches[0]
-				} else if Prefix != "vle" { //  (Prefix != "vme" && Prefix != "") always true!
+				} else if Prefix != "vle" {
 					d := strings.Split(matches[0], "ss://")
 					extractedConfig = "\n" + "ss://" + d[1]
 				}
-			} else if protoRegex == "vmess" {
-				extractedConfig = "\n" + matches[0]
 			} else {
 				extractedConfig = "\n" + matches[0]
 			}
@@ -383,12 +428,10 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 			ExtractConfig(Txt, Tempconfigs)
 		}
 	}
-	d := strings.Join(Tempconfigs, "\n")
-	return d
+	return strings.Join(Tempconfigs, "\n")
 }
 
 func EditVmessPs(config string, fileName string, AddConfigName bool) string {
-	// Decode the base64 string
 	if config == "" {
 		return ""
 	}
@@ -396,27 +439,22 @@ func EditVmessPs(config string, fileName string, AddConfigName bool) string {
 	if len(slice) > 0 {
 		decodedBytes, err := base64.StdEncoding.DecodeString(slice[1])
 		if err == nil {
-			// Unmarshal JSON into a map
 			var data map[string]interface{}
 			err = json.Unmarshal(decodedBytes, &data)
 			if err == nil {
 				if AddConfigName {
-	cfg.ConfigFileIds[fileName] += 1
-	data["ps"] = cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[fileName])) + "\n"
+					cfg.ConfigFileIds[fileName] += 1
+					data["ps"] = cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[fileName])) + "\n"
 				} else {
 					data["ps"] = ""
 				}
 
-				// marshal JSON into a map
 				jsonData, _ := json.Marshal(data)
-				// Encode JSON to base64
 				base64Encoded := base64.StdEncoding.EncodeToString(jsonData)
-
 				return "vmess://" + base64Encoded
 			}
 		}
 	}
-
 	return ""
 }
 
@@ -426,7 +464,6 @@ func loadMore(link string) *goquery.Document {
 	var doc *goquery.Document
 	var err error
 	
-	// 重试3次
 	for i := 0; i < 3; i++ {
 		req, err := http.NewRequest("GET", link, nil)
 		if err != nil {
@@ -453,14 +490,10 @@ func loadMore(link string) *goquery.Document {
 	}
 
 	gologger.Error().Msgf("加载更多消息失败: %v", err)
-	return nil
+	return doc
 }
 
 func HttpRequest(url string) (*http.Response, error) {
-	var resp *http.Response
-	var err error
-	
-	// 重试3次
 	for i := 0; i < 3; i++ {
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
@@ -468,98 +501,18 @@ func HttpRequest(url string) (*http.Response, error) {
 			continue
 		}
 		
-		// 添加浏览器headers
 		userAgents := []string{
 			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15",
-			"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
 		}
-		rand.Seed(time.Now().UnixNano())
+
 		req.Header.Set("User-Agent", userAgents[rand.Intn(len(userAgents))])
-		req.Header.Set("Referer", "https://web.telegram.org/")
-		req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
-		req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7")
-		req.Header.Set("Accept-Encoding", "gzip, deflate, br")
-		req.Header.Set("Connection", "keep-alive")
-		req.Header.Set("Sec-Fetch-Dest", "document")
-		req.Header.Set("Sec-Fetch-Mode", "navigate")
-		req.Header.Set("Sec-Fetch-Site", "same-origin")
-		req.Header.Set("Sec-Fetch-User", "?1")
-		req.Header.Set("Upgrade-Insecure-Requests", "1")
-		req.Header.Set("Cache-Control", "max-age=0")
-		
-		// 添加随机延迟
-		time.Sleep(time.Duration(rand.Intn(3000)) * time.Millisecond)
-
-		resp, err = client.Do(req)
-		if err != nil {
-			gologger.Warning().Msgf("请求失败，重试中... (尝试 %d/3) 错误: %v", i+1, err)
-			time.Sleep(2 * time.Second)
-			continue
+		resp, err := client.Do(req)
+		if err == nil {
+			return resp, nil
 		}
-
-		// 检查响应状态码
-		if resp.StatusCode != http.StatusOK {
-			gologger.Warning().Msgf("请求 %s 返回非200状态码: %d", url, resp.StatusCode)
-			resp.Body.Close()
-			continue
-		}
-
-		// 检查响应内容长度
-		if resp.ContentLength == 0 {
-			gologger.Warning().Msgf("请求 %s 返回空响应", url)
-			resp.Body.Close()
-			continue
-		}
-
-		return resp, nil
+		gologger.Warning().Msgf("请求失败，重试中... (尝试 %d/3)", i+1)
+		time.Sleep(2 * time.Second)
 	}
-
-	gologger.Error().Msgf("请求 %s 失败: %v", url, err)
-	return nil, fmt.Errorf("请求失败，请检查网络连接或目标网站是否可访问")
-}
-
-func GetMessages(length int, doc *goquery.Document, number string, channel string) *goquery.Document {
-	gologger.Info().Msgf("正在获取更多消息，当前数量: %d", length)
-	
-	x := loadMore(channel + "?before=" + number)
-	if x == nil {
-		gologger.Error().Msg("加载更多消息失败")
-		return doc
-	}
-
-	html2, err := x.Html()
-	if err != nil {
-		gologger.Error().Msgf("获取HTML内容失败: %v", err)
-		return doc
-	}
-
-	reader2 := strings.NewReader(html2)
-	doc2, err := goquery.NewDocumentFromReader(reader2)
-	if err != nil {
-		gologger.Error().Msgf("解析HTML失败: %v", err)
-		return doc
-	}
-
-	doc.Find("body").AppendSelection(doc2.Find("body").Children())
-	newDoc := goquery.NewDocumentFromNode(doc.Selection.Nodes[0])
-	
-	messages := newDoc.Find(".js-widget_message_wrap").Length()
-	gologger.Info().Msgf("当前总消息数: %d", messages)
-
-	if messages > length {
-		return newDoc
-	}
-
-	num, err := strconv.Atoi(number)
-	if err != nil {
-		gologger.Error().Msgf("转换消息编号失败: %v", err)
-		return newDoc
-	}
-
-	n := num - 21
-	if n < 0 {
-		return newDoc
-	}
-	return GetMessages(length, newDoc, strconv.Itoa(n), channel)
+	return nil, fmt.Errorf("请求失败: %s", url)
 }
