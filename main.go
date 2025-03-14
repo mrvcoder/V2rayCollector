@@ -32,18 +32,31 @@ type Config struct {
 	Sort         *bool
 }
 
+type FileLock struct {
+	mu    *sync.Mutex
+	cond  *sync.Cond
+	count int
+}
+
 var (
 	maxMessages = 100
 	client      *http.Client
 	cfg         Config
-	fileMutexes = map[string]*sync.Mutex{
-		"ss":     &sync.Mutex{},
-		"vmess":  &sync.Mutex{},
-		"trojan": &sync.Mutex{},
-		"vless":  &sync.Mutex{},
-		"mixed":  &sync.Mutex{},
-	} // 为每种协议类型创建单独的锁
+	fileLocks = map[string]*FileLock{
+		"ss":     &FileLock{mu: &sync.Mutex{}, count: 0},
+		"vmess":  &FileLock{mu: &sync.Mutex{}, count: 0},
+		"trojan": &FileLock{mu: &sync.Mutex{}, count: 0},
+		"vless":  &FileLock{mu: &sync.Mutex{}, count: 0},
+		"mixed":  &FileLock{mu: &sync.Mutex{}, count: 0},
+	} // 为每种协议类型创建带等待队列的锁
 )
+
+func init() {
+	// 初始化条件变量
+	for _, lock := range fileLocks {
+		lock.cond = sync.NewCond(lock.mu)
+	}
+}
 
 func init() {
 	// 初始化HTTP客户端配置
@@ -231,9 +244,21 @@ func main() {
 		gologger.Fatal().Msgf("无法创建mixed.txt文件: %v", err)
 	}
 
-			// 使用协议类型对应的锁
-			fileMutexes[proto].Lock()
-			defer fileMutexes[proto].Unlock()
+			// 使用带等待队列的文件锁
+			lock := fileLocks[proto]
+			lock.mu.Lock()
+			for lock.count > 0 {
+				lock.cond.Wait()
+			}
+			lock.count++
+			lock.mu.Unlock()
+			
+			defer func() {
+				lock.mu.Lock()
+				lock.count--
+				lock.cond.Signal()
+				lock.mu.Unlock()
+			}()
 			
 			filePath := "results/" + proto + ".txt"
 			if err := collector.WriteToFile(lines, filePath); err != nil {
@@ -244,13 +269,24 @@ func main() {
 			
 			// 将内容追加到mixed.txt
 			if proto != "mixed" {
-				fileMutexes["mixed"].Lock()
+				lock := fileLocks["mixed"]
+				lock.mu.Lock()
+				for lock.count > 0 {
+					lock.cond.Wait()
+				}
+				lock.count++
+				lock.mu.Unlock()
+				
 				if err := collector.AppendToFile(lines+"\n", "results/mixed.txt"); err != nil {
 					gologger.Error().Msgf("追加内容到mixed.txt失败: %v", err)
 				} else {
 					gologger.Debug().Msgf("成功追加%s配置到mixed.txt", proto)
 				}
-				fileMutexes["mixed"].Unlock()
+				
+				lock.mu.Lock()
+				lock.count--
+				lock.cond.Signal()
+				lock.mu.Unlock()
 			}
 		}(proto, configcontent)
 	}
@@ -398,11 +434,22 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 							if extractedConfig != "" {
 								cfg.Configs[proto] += extractedConfig + "\n"
 								// 直接写入mixed文件
-								fileMutexes["mixed"].Lock()
-								if err := collector.AppendToFile(extractedConfig+"\n", "results/mixed.txt"); err != nil {
-									gologger.Error().Msgf("写入mixed.txt失败: %v", err)
-								}
-								fileMutexes["mixed"].Unlock()
+				lock := fileLocks["mixed"]
+				lock.mu.Lock()
+				for lock.count > 0 {
+					lock.cond.Wait()
+				}
+				lock.count++
+				lock.mu.Unlock()
+				
+				if err := collector.AppendToFile(extractedConfig+"\n", "results/mixed.txt"); err != nil {
+					gologger.Error().Msgf("写入mixed.txt失败: %v", err)
+				}
+				
+				lock.mu.Lock()
+				lock.count--
+				lock.cond.Signal()
+				lock.mu.Unlock()
 							}
 							break
 						}
