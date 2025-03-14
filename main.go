@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"runtime"
 	
 	"github.com/jagger235711/V2rayCollector/collector"
 
@@ -35,7 +36,13 @@ var (
 	maxMessages = 100
 	client      *http.Client
 	cfg         Config
-	fileMutex   sync.Mutex // 添加文件写入互斥锁
+	fileMutexes = map[string]*sync.Mutex{
+		"ss":     &sync.Mutex{},
+		"vmess":  &sync.Mutex{},
+		"trojan": &sync.Mutex{},
+		"vless":  &sync.Mutex{},
+		"mixed":  &sync.Mutex{},
+	} // 为每种协议类型创建单独的锁
 )
 
 func init() {
@@ -101,8 +108,31 @@ type ChannelsType struct {
 }
 
 func main() {
-	gologger.DefaultLogger.SetMaxLevel(levels.LevelDebug)
+	// 添加日志级别控制参数
+	logLevel := flag.String("log", "info", "日志级别 (debug, info, warn, error, fatal)")
 	flag.Parse()
+
+	// 设置日志级别
+	switch strings.ToLower(*logLevel) {
+	case "debug":
+		gologger.DefaultLogger.SetMaxLevel(levels.LevelDebug)
+		gologger.Info().Msg("日志级别设置为：debug")
+	case "info":
+		gologger.DefaultLogger.SetMaxLevel(levels.LevelInfo)
+		gologger.Info().Msg("日志级别设置为：info")
+	case "warn":
+		gologger.DefaultLogger.SetMaxLevel(levels.LevelWarning)
+		gologger.Info().Msg("日志级别设置为：warn")
+	case "error":
+		gologger.DefaultLogger.SetMaxLevel(levels.LevelError)
+		gologger.Info().Msg("日志级别设置为：error")
+	case "fatal":
+		gologger.DefaultLogger.SetMaxLevel(levels.LevelFatal)
+		gologger.Info().Msg("日志级别设置为：fatal")
+	default:
+		gologger.DefaultLogger.SetMaxLevel(levels.LevelInfo)
+		gologger.Info().Msg("使用默认日志级别：info")
+	}
 
 	// 读取频道列表
 	fileData, err := collector.ReadFileContent("channels.csv")
@@ -120,8 +150,10 @@ func main() {
 	ch := make(chan ChannelsType, len(channels))
 	results := make(chan error, len(channels))
 
+	// 根据CPU核心数动态设置worker数量
+	numWorkers := runtime.NumCPU() * 2
 	// 启动worker
-	for i := 0; i < 5; i++ {
+	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -162,7 +194,11 @@ func main() {
 	gologger.Info().Msg("开始生成输出文件...")
 
 	var fileWg sync.WaitGroup
+	// 先写入具体协议文件
 	for proto, configcontent := range cfg.Configs {
+		if proto == "mixed" {
+			continue
+		}
 		fileWg.Add(1)
 		go func(proto, content string) {
 			defer fileWg.Done()
@@ -184,36 +220,63 @@ func main() {
 			lines = strings.TrimSpace(lines)
 			gologger.Debug().Msgf("最终内容长度: %d", len(lines))
 			
-			// 确保results目录存在
-			if err := os.MkdirAll("results", 0755); err != nil {
-				gologger.Error().Msgf("创建results目录失败: %v", err)
-				return
-			}
+	// 确保results目录存在并检查权限
+	if err := os.MkdirAll("results", 0755); err != nil {
+		gologger.Fatal().Msgf("创建results目录失败: %v", err)
+	}
+	
+	// 提前创建mixed文件并检查写入权限
+	mixedFilePath := "results/mixed.txt"
+	if _, err := os.OpenFile(mixedFilePath, os.O_CREATE|os.O_WRONLY, 0644); err != nil {
+		gologger.Fatal().Msgf("无法创建mixed.txt文件: %v", err)
+	}
 
-			// 使用互斥锁保护文件写入
-			fileMutex.Lock()
-			defer fileMutex.Unlock()
+			// 使用协议类型对应的锁
+			fileMutexes[proto].Lock()
+			defer fileMutexes[proto].Unlock()
 			
 			filePath := "results/" + proto + ".txt"
 			if err := collector.WriteToFile(lines, filePath); err != nil {
 				gologger.Error().Msgf("写入文件 %s 失败: %v", filePath, err)
 				return
 			}
+			gologger.Info().Msgf("成功写入文件: %s", filePath)
 			
-			// // 写入伊朗专用文件
-			// iranFilePath := "results/" + proto + "_iran.txt"
-			// if err := collector.WriteToFile(lines, iranFilePath); err != nil {
-			// 	gologger.Error().Msgf("写入文件 %s 失败: %v", iranFilePath, err)
-			// 	return
-			// }
-			
-			// gologger.Info().Msgf("成功写入文件: %s 和 %s", filePath, iranFilePath)
-
-			gologger.Info().Msgf("成功写入文件: %s ", filePath)
+			// 将内容追加到mixed.txt
+			if proto != "mixed" {
+				fileMutexes["mixed"].Lock()
+				if err := collector.AppendToFile(lines+"\n", "results/mixed.txt"); err != nil {
+					gologger.Error().Msgf("追加内容到mixed.txt失败: %v", err)
+				} else {
+					gologger.Debug().Msgf("成功追加%s配置到mixed.txt", proto)
+				}
+				fileMutexes["mixed"].Unlock()
+			}
 		}(proto, configcontent)
 	}
 
+	// 等待所有协议文件写入完成
 	fileWg.Wait()
+
+	// 确保results目录存在
+	if err := os.MkdirAll("results", 0755); err != nil {
+		gologger.Fatal().Msgf("创建results目录失败: %v", err)
+	}
+
+	// 检查mixed.txt文件状态
+	mixedFilePath := "results/mixed.txt"
+	if _, err := os.Stat(mixedFilePath); err == nil {
+		gologger.Info().Msg("mixed.txt文件已存在")
+	} else if os.IsNotExist(err) {
+		// 创建空文件
+		if err := collector.WriteToFile("", mixedFilePath); err != nil {
+			gologger.Fatal().Msgf("创建mixed.txt文件失败: %v", err)
+		}
+		gologger.Info().Msg("已创建新的mixed.txt文件")
+	} else {
+		gologger.Fatal().Msgf("检查mixed.txt文件状态失败: %v", err)
+	}
+	
 	gologger.Info().Msg("所有任务完成！")
 }
 
@@ -334,7 +397,12 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 							
 							if extractedConfig != "" {
 								cfg.Configs[proto] += extractedConfig + "\n"
-								cfg.Configs["mixed"] += extractedConfig + "\n"
+								// 直接写入mixed文件
+								fileMutexes["mixed"].Lock()
+								if err := collector.AppendToFile(extractedConfig+"\n", "results/mixed.txt"); err != nil {
+									gologger.Error().Msgf("写入mixed.txt失败: %v", err)
+								}
+								fileMutexes["mixed"].Unlock()
 							}
 							break
 						}
@@ -398,7 +466,10 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 							
 							if extractedConfig != "" {
 								cfg.Configs[proto] += extractedConfig + "\n"
-								cfg.Configs["mixed"] += extractedConfig + "\n"
+								// 确保mixed包含所有协议
+								if proto != "mixed" {
+									cfg.Configs["mixed"] += extractedConfig + "\n"
+								}
 							}
 							break
 						}

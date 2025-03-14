@@ -31,7 +31,7 @@ jobs:
       - name: Build and run Golang file
         run: |
           go build -o myapp
-          ./myapp -sort
+          ./myapp -sort -log warn
 
       - name: Commit Changes
         run: |

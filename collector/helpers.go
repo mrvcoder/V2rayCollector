@@ -152,6 +152,28 @@ func WriteToFile(content string, filePath string) error {
 	return nil
 }
 
+func AppendToFile(content string, filePath string) error {
+	// 确保目录存在
+	dir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("创建目录失败: %v", err)
+	}
+
+	// 以追加模式打开文件
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("打开文件失败: %v", err)
+	}
+	defer file.Close()
+
+	// 写入内容
+	if _, err := file.WriteString(content); err != nil {
+		return fmt.Errorf("写入文件失败: %v", err)
+	}
+
+	return nil
+}
+
 func EditVmessPs(vmess string) string {
 	// 解析vmess配置
 	config := strings.TrimPrefix(vmess, "vmess://")
