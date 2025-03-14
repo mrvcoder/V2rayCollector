@@ -1,11 +1,12 @@
 package collector
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 	"time"
 
@@ -41,9 +42,42 @@ func Reverse(lines []string) []string {
 
 func RemoveDuplicate(config string) string {
 	lines := strings.Split(config, "\n")
-	slices.Sort(lines)
-	lines = slices.Compact(lines)
-	return strings.Join(lines, "\n")
+	uniqueLines := make(map[string]bool)
+	result := []string{}
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		
+		// 只对配置部分去重，忽略备注
+		configPart := strings.Split(line, "#")[0]
+		configPart = strings.TrimSpace(configPart)
+		
+		// 验证配置格式
+		if !isValidConfig(configPart) {
+			continue
+		}
+		
+		if !uniqueLines[configPart] {
+			uniqueLines[configPart] = true
+			result = append(result, line)
+		}
+	}
+	
+	return strings.Join(result, "\n")
+}
+
+func isValidConfig(config string) bool {
+	// 检查常见协议格式
+	protocols := []string{"vmess://", "vless://", "ss://", "trojan://"}
+	for _, protocol := range protocols {
+		if strings.HasPrefix(config, protocol) {
+			return true
+		}
+	}
+	return false
 }
 
 func GetMessages(maxMessages int, doc *goquery.Document, number string, channelLink string) *goquery.Document {
@@ -74,20 +108,78 @@ func WriteToFile(content string, filePath string) error {
 		return fmt.Errorf("创建目录失败: %v", err)
 	}
 
-	// 使用临时文件实现原子写入
-	tmpFile := filePath + ".tmp"
-	if err := os.WriteFile(tmpFile, []byte(content), 0644); err != nil {
-		return fmt.Errorf("写入临时文件失败: %v", err)
+	// 按协议类型分类
+	protocols := map[string][]string{
+		"ss":     []string{},
+		"vmess":  []string{},
+		"vless":  []string{},
+		"trojan": []string{},
 	}
 
-	// 重命名实现原子操作
-	if err := os.Rename(tmpFile, filePath); err != nil {
-		// 清理临时文件
-		os.Remove(tmpFile)
-		return fmt.Errorf("重命名文件失败: %v", err)
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if !isValidConfig(line) {
+			continue
+		}
+
+		// 根据协议类型分类
+		switch {
+		case strings.HasPrefix(line, "ss://"):
+			protocols["ss"] = append(protocols["ss"], line)
+		case strings.HasPrefix(line, "vmess://"):
+			line = EditVmessPs(line)
+			protocols["vmess"] = append(protocols["vmess"], line)
+		case strings.HasPrefix(line, "vless://"):
+			protocols["vless"] = append(protocols["vless"], line)
+		case strings.HasPrefix(line, "trojan://"):
+			protocols["trojan"] = append(protocols["trojan"], line)
+		}
+	}
+
+	// 写入对应文件
+	for protocol, configs := range protocols {
+		if len(configs) > 0 {
+			outputPath := filepath.Join(dir, protocol+".txt")
+			content := strings.Join(configs, "\n")
+			if err := os.WriteFile(outputPath, []byte(content), 0644); err != nil {
+				return fmt.Errorf("写入%s文件失败: %v", protocol, err)
+			}
+			fmt.Printf("[INFO] 成功写入 %d 条%s配置到 %s\n", len(configs), protocol, outputPath)
+		}
 	}
 
 	return nil
+}
+
+func EditVmessPs(vmess string) string {
+	// 解析vmess配置
+	config := strings.TrimPrefix(vmess, "vmess://")
+	decoded, err := base64.StdEncoding.DecodeString(config)
+	if err != nil {
+		return vmess
+	}
+
+	// 解析JSON
+	var vmessConfig map[string]interface{}
+	if err := json.Unmarshal(decoded, &vmessConfig); err != nil {
+		return vmess
+	}
+
+	// 保留原始PS值
+	if ps, ok := vmessConfig["ps"].(string); ok {
+		// 格式化配置名称
+		vmessConfig["ps"] = fmt.Sprintf("%s | V2rayCollector", ps)
+	}
+
+	// 重新编码为JSON
+	encoded, err := json.Marshal(vmessConfig)
+	if err != nil {
+		return vmess
+	}
+
+	// 返回新的vmess配置
+	return fmt.Sprintf("vmess://%s", base64.StdEncoding.EncodeToString(encoded))
 }
 
 func loadMore(link string) *goquery.Document {
@@ -98,24 +190,41 @@ func loadMore(link string) *goquery.Document {
 	for i := 0; i < 3; i++ {
 		req, err := http.NewRequest("GET", link, nil)
 		if err != nil {
+			fmt.Printf("[WARN] 创建请求失败: %v (重试 %d/3)\n", err, i+1)
 			continue
 		}
 
+		// 设置请求头
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+		req.Header.Set("Referer", "https://t.me/")
+		req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9")
+
 		resp, err := client.Do(req)
 		if err != nil {
+			fmt.Printf("[WARN] 请求失败: %v (重试 %d/3)\n", err, i+1)
 			time.Sleep(2 * time.Second)
 			continue
 		}
 		defer resp.Body.Close()
 
-		doc, err := goquery.NewDocumentFromReader(resp.Body)
-		if err != nil {
+		// 检查响应状态码
+		if resp.StatusCode != http.StatusOK {
+			fmt.Printf("[WARN] 请求返回非200状态码: %d (重试 %d/3)\n", resp.StatusCode, i+1)
 			time.Sleep(2 * time.Second)
 			continue
 		}
 
+		doc, err := goquery.NewDocumentFromReader(resp.Body)
+		if err != nil {
+			fmt.Printf("[WARN] 解析HTML失败: %v (重试 %d/3)\n", err, i+1)
+			time.Sleep(2 * time.Second)
+			continue
+		}
+
+		fmt.Printf("[INFO] 成功加载更多消息 from %s\n", link)
 		return doc
 	}
 
+	fmt.Printf("[ERROR] 加载更多消息失败 after 3次重试: %s\n", link)
 	return nil
 }

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -89,7 +87,7 @@ func init() {
 		},
 		RegexPatterns: map[string]string{
 			"ss":     `(?m)(...ss:|^ss:)\/\/.+?(%3A%40|#)`,
-			"vmess":  `(?m)vmess:\/\/.+`,
+			"vmess":  `(?m)vmess:\/\/[A-Za-z0-9+/=]+`,  // 更严格的vmess匹配
 			"trojan": `(?m)trojan:\/\/.+?(%3A%40|#)`,
 			"vless":  `(?m)vless:\/\/.+?(%3A%40|#)`,
 		},
@@ -168,14 +166,23 @@ func main() {
 		fileWg.Add(1)
 		go func(proto, content string) {
 			defer fileWg.Done()
+			// 添加调试日志
+			gologger.Debug().Msgf("准备写入 %s 配置，原始内容长度: %d", proto, len(content))
+			
 			lines := collector.RemoveDuplicate(content)
+			gologger.Debug().Msgf("去重后内容长度: %d", len(lines))
+			
 			lines = AddConfigNames(lines, proto)
+			gologger.Debug().Msgf("添加配置名称后内容长度: %d", len(lines))
+			
 			if *cfg.Sort {
 				linesArr := strings.Split(lines, "\n")
 				linesArr = collector.Reverse(linesArr)
 				lines = strings.Join(linesArr, "\n")
+				gologger.Debug().Msgf("排序后内容长度: %d", len(lines))
 			}
 			lines = strings.TrimSpace(lines)
+			gologger.Debug().Msgf("最终内容长度: %d", len(lines))
 			
 			// 确保results目录存在
 			if err := os.MkdirAll("results", 0755); err != nil {
@@ -251,20 +258,19 @@ func AddConfigNames(config string, configtype string) string {
 				extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
 				if extractedConfig != "" {
 					if protoRegex == "vmess" {
-						extractedConfig = EditVmessPs(extractedConfig, configtype, true)
+						extractedConfig = collector.EditVmessPs(extractedConfig)
 						if extractedConfig != "" {
 							newConfigs += extractedConfig + "\n"
 						}
 					} else if protoRegex == "ss" {
 						Prefix := strings.Split(matches[0], "ss://")[0]
-						if Prefix == "" {
-	cfg.ConfigFileIds[configtype] += 1
-	newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[configtype])) + "\n"
-						}
-					} else {
-
-	cfg.ConfigFileIds[configtype] += 1
-	newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[configtype])) + "\n"
+						if Prefix != "vle" {
+					cfg.ConfigFileIds[configtype] += 1
+					newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[configtype])) + "\n"
+				}
+			} else {
+				cfg.ConfigFileIds[configtype] += 1
+				newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[configtype])) + "\n"
 					}
 				}
 			}
@@ -323,7 +329,7 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 							gologger.Debug().Msgf("匹配到 %s 协议: %s", proto, extractedConfig)
 							
 							if proto == "vmess" {
-								extractedConfig = EditVmessPs(extractedConfig, proto, false)
+								extractedConfig = collector.EditVmessPs(extractedConfig)
 							}
 							
 							if extractedConfig != "" {
@@ -337,23 +343,41 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 			}
 		})
 	} else {
-		// 仅获取code或pre标签内的消息并检查v2ray配置
-		doc.Find("code,pre").Each(func(j int, s *goquery.Selection) {
-			messageText, _ := s.Html()
-			str := strings.ReplaceAll(messageText, "<br/>", "\n")
-			doc, _ := goquery.NewDocumentFromReader(strings.NewReader(str))
-			messageText = doc.Text()
-			line := strings.TrimSpace(messageText)
-			gologger.Debug().Msgf("代码块内容: %s", line)
+		// 优化后的配置提取逻辑
+		doc.Find(".tgme_widget_message_text").Each(func(j int, s *goquery.Selection) {
+			// 提取所有文本内容
+			messageText := s.Text()
+			lines := strings.Split(messageText, "\n")
 			
-			lines := strings.Split(line, "\n")
-			for _, data := range lines {
-				data = strings.TrimSpace(data)
-				if data == "" {
+			// 定义常见配置前缀
+			configPrefixes := []string{
+				"vmess://",
+				"vless://", 
+				"trojan://",
+				"ss://",
+			}
+			
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				if line == "" {
 					continue
 				}
 				
-				extractedConfigs := strings.Split(ExtractConfig(data, []string{}), "\n")
+				// 检查是否包含配置前缀
+				hasConfig := false
+				for _, prefix := range configPrefixes {
+					if strings.Contains(line, prefix) {
+						hasConfig = true
+						break
+					}
+				}
+				
+				if !hasConfig {
+					continue
+				}
+				
+				// 提取配置
+				extractedConfigs := strings.Split(ExtractConfig(line, []string{}), "\n")
 				gologger.Debug().Msgf("提取的配置: %v", extractedConfigs)
 				
 				for _, extractedConfig := range extractedConfigs {
@@ -369,7 +393,7 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 							gologger.Debug().Msgf("匹配到 %s 协议: %s", proto, extractedConfig)
 							
 							if proto == "vmess" {
-								extractedConfig = EditVmessPs(extractedConfig, proto, false)
+								extractedConfig = collector.EditVmessPs(extractedConfig)
 							}
 							
 							if extractedConfig != "" {
@@ -429,33 +453,6 @@ func ExtractConfig(Txt string, Tempconfigs []string) string {
 		}
 	}
 	return strings.Join(Tempconfigs, "\n")
-}
-
-func EditVmessPs(config string, fileName string, AddConfigName bool) string {
-	if config == "" {
-		return ""
-	}
-	slice := strings.Split(config, "vmess://")
-	if len(slice) > 0 {
-		decodedBytes, err := base64.StdEncoding.DecodeString(slice[1])
-		if err == nil {
-			var data map[string]interface{}
-			err = json.Unmarshal(decodedBytes, &data)
-			if err == nil {
-				if AddConfigName {
-					cfg.ConfigFileIds[fileName] += 1
-					data["ps"] = cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[fileName])) + "\n"
-				} else {
-					data["ps"] = ""
-				}
-
-				jsonData, _ := json.Marshal(data)
-				base64Encoded := base64.StdEncoding.EncodeToString(jsonData)
-				return "vmess://" + base64Encoded
-			}
-		}
-	}
-	return ""
 }
 
 func loadMore(link string) *goquery.Document {
