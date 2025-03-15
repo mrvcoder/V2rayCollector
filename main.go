@@ -170,6 +170,8 @@ func main() {
 
 	// 根据CPU核心数动态设置worker数量
 	numWorkers := runtime.NumCPU() * 2
+	gologger.Info().Msgf("当前worker数量: %v", numWorkers)
+
 	// 启动worker
 	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
@@ -226,8 +228,8 @@ func main() {
 			lines := collector.RemoveDuplicate(content)
 			gologger.Debug().Msgf("去重后内容长度: %d", len(lines))
 			
-			// lines = AddConfigNames(lines, proto)
-			// gologger.Debug().Msgf("添加配置名称后内容长度: %d", len(lines))
+			lines = AddConfigNames(lines, proto)
+			gologger.Debug().Msgf("添加配置名称后内容长度: %d", len(lines))
 			
 			if *cfg.Sort {
 				linesArr := strings.Split(lines, "\n")
@@ -362,21 +364,21 @@ func AddConfigNames(config string, configtype string) string {
 				extractedConfig = strings.ReplaceAll(extractedConfig, " ", "")
 				if extractedConfig != "" {
 					if protoRegex == "vmess" {
-						extractedConfig = collector.EditVmessPs(extractedConfig)
+						// extractedConfig = collector.EditVmessPs(extractedConfig)
 						if extractedConfig != "" {
 							newConfigs += extractedConfig + "\n"
 						}
 					} else if protoRegex == "ss" {
 						Prefix := strings.Split(matches[0], "ss://")[0]
 						if Prefix != "vle" {
-			cfg.mu.Lock()
-			cfg.ConfigFileIds[configtype] += 1
-			id := cfg.ConfigFileIds[configtype]
-			cfg.mu.Unlock()
-			
-			cfg.mu.Lock()
-			newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(id)) + "\n"
-			cfg.mu.Unlock()
+							cfg.mu.Lock()
+							cfg.ConfigFileIds[configtype] += 1
+							id := cfg.ConfigFileIds[configtype]
+							cfg.mu.Unlock()
+							
+							cfg.mu.Lock()
+							newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(id)) + "\n"
+							cfg.mu.Unlock()
 						}
 					} else if protoRegex == "hysteria2" {
 						cfg.mu.Lock()
