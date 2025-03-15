@@ -387,7 +387,9 @@ func AddConfigNames(config string, configtype string) string {
 						cfg.mu.Unlock()
 						newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(id)) + "\n"
 					} else {
+						cfg.mu.Lock()
 						cfg.ConfigFileIds[configtype] += 1
+						cfg.mu.Unlock()
 						newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[configtype])) + "\n"
 					}
 				}
