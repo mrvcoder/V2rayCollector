@@ -71,7 +71,7 @@ func RemoveDuplicate(config string) string {
 
 func isValidConfig(config string) bool {
 	// 检查常见协议格式
-	protocols := []string{"vmess://", "vless://", "ss://", "trojan://"}
+	protocols := []string{"vmess://", "vless://", "ss://", "trojan://", "hysteria2://"}
 	for _, protocol := range protocols {
 		if strings.HasPrefix(config, protocol) {
 			return true
@@ -110,10 +110,11 @@ func WriteToFile(content string, filePath string) error {
 
 	// 按协议类型分类
 	protocols := map[string][]string{
-		"ss":     []string{},
-		"vmess":  []string{},
-		"vless":  []string{},
-		"trojan": []string{},
+		"ss":       []string{},
+		"vmess":    []string{},
+		"vless":    []string{},
+		"trojan":   []string{},
+		"hysteria2": []string{},
 	}
 
 	lines := strings.Split(content, "\n")
@@ -134,6 +135,8 @@ func WriteToFile(content string, filePath string) error {
 			protocols["vless"] = append(protocols["vless"], line)
 		case strings.HasPrefix(line, "trojan://"):
 			protocols["trojan"] = append(protocols["trojan"], line)
+		case strings.HasPrefix(line, "hysteria2://"):
+			protocols["hysteria2"] = append(protocols["hysteria2"], line)
 		}
 	}
 

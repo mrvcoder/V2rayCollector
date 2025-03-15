@@ -30,6 +30,7 @@ type Config struct {
 	ConfigFileIds map[string]int32
 	RegexPatterns map[string]string
 	Sort         *bool
+	mu           sync.Mutex // 添加互斥锁
 }
 
 type FileLock struct {
@@ -43,11 +44,12 @@ var (
 	client      *http.Client
 	cfg         Config
 	fileLocks = map[string]*FileLock{
-		"ss":     &FileLock{mu: &sync.Mutex{}, count: 0},
-		"vmess":  &FileLock{mu: &sync.Mutex{}, count: 0},
-		"trojan": &FileLock{mu: &sync.Mutex{}, count: 0},
-		"vless":  &FileLock{mu: &sync.Mutex{}, count: 0},
-		"mixed":  &FileLock{mu: &sync.Mutex{}, count: 0},
+		"ss":        &FileLock{mu: &sync.Mutex{}, count: 0},
+		"vmess":     &FileLock{mu: &sync.Mutex{}, count: 0},
+		"trojan":    &FileLock{mu: &sync.Mutex{}, count: 0},
+		"vless":     &FileLock{mu: &sync.Mutex{}, count: 0},
+		"hysteria2": &FileLock{mu: &sync.Mutex{}, count: 0},
+		"mixed":     &FileLock{mu: &sync.Mutex{}, count: 0},
 	} // 为每种协议类型创建带等待队列的锁
 )
 
@@ -91,26 +93,29 @@ func init() {
 		MaxMessages:  100,
 		// ConfigsNames: "@Vip_Security join us",
 		ConfigsNames: "@Jagger235711",
-		Configs: map[string]string{
-			"ss":     "",
-			"vmess":  "",
-			"trojan": "",
-			"vless":  "",
-			"mixed":  "",
-		},
-		ConfigFileIds: map[string]int32{
-			"ss":     0,
-			"vmess":  0,
-			"trojan": 0,
-			"vless":  0,
-			"mixed":  0,
-		},
-		RegexPatterns: map[string]string{
-			"ss":     `(?m)(...ss:|^ss:)\/\/.+?(%3A%40|#)`,
-			"vmess":  `(?m)vmess:\/\/[A-Za-z0-9+/=]+`,  // 更严格的vmess匹配
-			"trojan": `(?m)trojan:\/\/.+?(%3A%40|#)`,
-			"vless":  `(?m)vless:\/\/.+?(%3A%40|#)`,
-		},
+	Configs: map[string]string{
+		"ss":        "",
+		"vmess":     "",
+		"trojan":    "",
+		"vless":     "",
+		"hysteria2": "",
+		"mixed":     "",
+	},
+	ConfigFileIds: map[string]int32{
+		"ss":        0,
+		"vmess":     0,
+		"trojan":    0,
+		"vless":     0,
+		"hysteria2": 0,
+		"mixed":     0,
+	},
+	RegexPatterns: map[string]string{
+		"ss":        `(?m)(...ss:|^ss:)\/\/.+?(%3A%40|#)`,
+		"vmess":     `(?m)vmess:\/\/[A-Za-z0-9+/=]+`,  // 更严格的vmess匹配
+		"trojan":    `(?m)trojan:\/\/.+?(%3A%40|#)`,
+		"vless":     `(?m)vless:\/\/.+?(%3A%40|#)`,
+		"hysteria2": `(?m)hysteria2:\/\/.+?(%3A%40|#)`,
+	},
 		Sort: flag.Bool("sort", false, "sort from latest to oldest (default : false)"),
 	}
 }
@@ -364,12 +369,24 @@ func AddConfigNames(config string, configtype string) string {
 					} else if protoRegex == "ss" {
 						Prefix := strings.Split(matches[0], "ss://")[0]
 						if Prefix != "vle" {
-					cfg.ConfigFileIds[configtype] += 1
-					newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[configtype])) + "\n"
-				}
-			} else {
-				cfg.ConfigFileIds[configtype] += 1
-				newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[configtype])) + "\n"
+			cfg.mu.Lock()
+			cfg.ConfigFileIds[configtype] += 1
+			id := cfg.ConfigFileIds[configtype]
+			cfg.mu.Unlock()
+			
+			cfg.mu.Lock()
+			newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(id)) + "\n"
+			cfg.mu.Unlock()
+						}
+					} else if protoRegex == "hysteria2" {
+						cfg.mu.Lock()
+						cfg.ConfigFileIds[configtype] += 1
+						id := cfg.ConfigFileIds[configtype]
+						cfg.mu.Unlock()
+						newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(id)) + "\n"
+					} else {
+						cfg.ConfigFileIds[configtype] += 1
+						newConfigs += extractedConfig + cfg.ConfigsNames + " - " + strconv.Itoa(int(cfg.ConfigFileIds[configtype])) + "\n"
 					}
 				}
 			}
@@ -470,6 +487,7 @@ func CrawlForV2ray(doc *goquery.Document, channelLink string, HasAllMessagesFlag
 				"vless://", 
 				"trojan://",
 				"ss://",
+				"hysteria2://",
 			}
 			
 			for _, line := range lines {
