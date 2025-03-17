@@ -35,7 +35,7 @@ jobs:
       
       - name: Speedtest
         run: |
-          ./tool/speedTest_singtools/singtools test   -i ./results/mixed.txt -o ./results/mixed_tested.json
+          ./tool/speedTest_singtools/singtools test   -i ./results/mixed.txt -o ./results/mixed_tested.json -e fatal
 
       - name: Commit Changes
         run: |

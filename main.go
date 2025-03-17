@@ -92,7 +92,7 @@ func init() {
 		},
 		MaxMessages:  100,
 		// ConfigsNames: "@Vip_Security join us",
-		ConfigsNames: "@Jagger235711",
+		ConfigsNames: "",
 	Configs: map[string]string{
 		"ss":        "",
 		"vmess":     "",
