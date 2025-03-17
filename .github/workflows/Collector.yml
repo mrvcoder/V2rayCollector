@@ -32,6 +32,10 @@ jobs:
         run: |
           go build -o myapp
           ./myapp -sort -log warn
+      
+      - name: Speedtest
+        run: |
+          ./tool/speedTest_singtools/singtools test   -i ./results/mixed.txt -o ./results/mixed_tested.json
 
       - name: Commit Changes
         run: |
