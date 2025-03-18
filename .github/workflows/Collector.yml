@@ -47,7 +47,9 @@ jobs:
 
           # curl -o ./results/mixed_tested.txt http://0.0.0.0:25500/sub\?target\=mixed\&url\=./results/mixed_tested.json
 
-          whereis mixed_tested.json
+          echo "\n------------------"
+          find / -name mixed_tested.json
+          echo "\n------------------"
 
           # 执行 curl 命令并将结果保存到文件，同时添加错误检查
           if ! curl -o ./results/mixed_tested.txt http://0.0.0.0:25500/sub\?target\=mixed\&url\=./results/mixed_tested.json; then
