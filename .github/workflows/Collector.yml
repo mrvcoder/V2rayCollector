@@ -36,6 +36,11 @@ jobs:
       - name: Speedtest
         run: |
           ./tool/speedTest_singtools/singtools test   -i ./results/mixed.txt -o ./results/mixed_tested.json -e fatal -f ""
+      
+      - name: Convert to mixed with base64encode
+        run: |
+          ./tool/subconverter/subconverter & 
+          curl -o ./results/mixed_tested.txt http://127.0.0.1:25500/sub\?target\=mixed\&url\=./results/mixed_tested.json
 
       - name: Commit Changes
         run: |
