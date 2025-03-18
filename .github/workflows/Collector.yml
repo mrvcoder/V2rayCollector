@@ -36,11 +36,22 @@ jobs:
       - name: Speedtest
         run: |
           ./tool/speedTest_singtools/singtools test   -i ./results/mixed.txt -o ./results/mixed_tested.json -e fatal -f ""
+
+      - name: Check mixed_tested.json
+        run: |
+          if [ -f "./results/mixed_tested.json" ]; then
+            cat ./results/mixed_tested.json
+          else
+            echo "mixed_tested.json does not exist."
+          fi
       
       - name: Start Subconverter
         run: |
           ./tool/subconverter/subconverter &
-      
+          until curl -s http://0.0.0.0:25500 >/dev/null; do
+            sleep 1
+          done
+            
       - name: Convert to mixed with base64encode
         run: |
           curl -o ./results/mixed_tested.txt http://0.0.0.0:25500/sub\?target\=mixed\&url\=./results/mixed_tested.json
