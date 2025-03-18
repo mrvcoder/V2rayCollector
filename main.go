@@ -207,7 +207,7 @@ func main() {
 	// 检查错误
 	for err := range results {
 		if err != nil {
-			gologger.Fatal().Msgf("处理频道时出错: %v", err)
+			gologger.Error().Msgf("处理频道时出错: %v", err)
 		}
 	}
 
