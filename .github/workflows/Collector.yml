@@ -39,7 +39,7 @@ jobs:
       
       - name: Start Subconverter
         run: |
-          ./tool/subconverter/subconverter 
+          ./tool/subconverter/subconverter &
         
       - name: Sleep
         run: |
