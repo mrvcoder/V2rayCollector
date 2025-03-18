@@ -40,10 +40,6 @@ jobs:
       - name: Start Subconverter
         run: |
           ./tool/subconverter/subconverter &
-        
-      - name: Sleep
-        run: |
-          sleep 5
       
       - name: Convert to mixed with base64encode
         run: |
