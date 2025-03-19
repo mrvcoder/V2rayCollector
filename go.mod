@@ -1,4 +1,4 @@
-module github.com/mrvcoder/V2rayCollector
+module github.com/jagger235711/V2rayCollector
 
 go 1.22.0
 
